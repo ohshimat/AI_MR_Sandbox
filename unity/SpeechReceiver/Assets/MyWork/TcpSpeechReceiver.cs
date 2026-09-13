@@ -8,6 +8,16 @@ using System.Collections.Concurrent;
 using TMPro;
 
 [System.Serializable]
+public class ActionRequest
+{
+    public string type;
+    public string speaker;
+    public string action;
+    public string reference;
+    public string direction;
+}
+
+[System.Serializable]
 public class SpeechMessage
 {
     public string type;
@@ -76,14 +86,21 @@ public class TcpSpeechReceiver : MonoBehaviour
     {
         while (messages.TryDequeue(out string message))
         {
-            SpeechMessage speech =
-                JsonUtility.FromJson<SpeechMessage>(message);
+            ActionRequest request =
+                JsonUtility.FromJson<ActionRequest>(message);
 
-            Debug.Log(speech.text);
+            Debug.Log(
+                $"Action: {request.action}, " +
+                $"Reference: {request.reference}, " +
+                $"Direction: {request.direction}"
+            );
 
             if (speechText != null)
             {
-                speechText.text = speech.text;
+                speechText.text =
+                    "Action: " + request.action + "\n" +
+                    "Reference: " + request.reference + "\n" +
+                    "Direction: " + request.direction;
             }
         }
     }
