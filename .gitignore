@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Generated audio
+speech_test.wav
+
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+[Bb]uild/
+[Bb]uilds/
+UserSettings/
+
+# Visual Studio / VS Code temporary files
+.vs/
+
+# OS
+Thumbs.db
+.DS_Store
