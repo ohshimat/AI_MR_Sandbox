@@ -8,7 +8,9 @@ public class ActionVerifier : MonoBehaviour
     public float targetDistance = 1.0f;
     public float tolerance = 0.05f;
 
-    public void VerifyRightPosition()
+    public ExperienceLogger experienceLogger;
+
+    public void VerifyRightPosition(ActionRequest request)
     {
         Vector3 expectedPosition =
             humanTransform.position +
@@ -20,17 +22,25 @@ public class ActionVerifier : MonoBehaviour
                 expectedPosition
             );
 
-        if (error <= tolerance)
+        bool passed = error <= tolerance;
+
+        if (passed)
         {
-            Debug.Log(
-                "Verification: PASS  Error = " + error
-            );
+            Debug.Log("Verification: PASS  Error = " + error);
         }
         else
         {
-            Debug.Log(
-                "Verification: FAIL  Error = " + error
+            Debug.Log("Verification: FAIL  Error = " + error);
+        }
+
+        if (experienceLogger != null)
+        {
+            experienceLogger.SaveExperience(
+                request,
+                error,
+                passed
             );
         }
+
     }
 }

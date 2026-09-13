@@ -109,7 +109,7 @@ public class TcpSpeechReceiver : MonoBehaviour
 
                 if (actionVerifier != null)
                 {
-                    actionVerifier.VerifyRightPosition();
+                    actionVerifier.VerifyRightPosition(request);
                 }
             }
 
