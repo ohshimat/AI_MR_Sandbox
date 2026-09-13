@@ -39,6 +39,9 @@ public class TcpSpeechReceiver : MonoBehaviour
     public Transform aiTransform;
 
     public float moveDistance = 1.0f;
+
+    public ActionVerifier actionVerifier;
+
     void Start()
     {
         Application.runInBackground = true;
@@ -103,6 +106,11 @@ public class TcpSpeechReceiver : MonoBehaviour
                 aiTransform.position = targetPosition;
 
                 Debug.Log("AI_1 moved to: " + targetPosition);
+
+                if (actionVerifier != null)
+                {
+                    actionVerifier.VerifyRightPosition();
+                }
             }
 
             Debug.Log(
