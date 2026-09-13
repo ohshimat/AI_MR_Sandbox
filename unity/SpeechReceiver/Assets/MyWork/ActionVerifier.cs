@@ -9,7 +9,6 @@ public class ActionVerifier : MonoBehaviour
     public float tolerance = 0.05f;
 
     public ExperienceLogger experienceLogger;
-
     public void VerifyRightPosition(ActionRequest request)
     {
         Vector3 expectedPosition =
