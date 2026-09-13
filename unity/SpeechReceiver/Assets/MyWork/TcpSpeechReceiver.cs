@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Collections.Concurrent;
 
+using TMPro;
+
 [System.Serializable]
 public class SpeechMessage
 {
@@ -21,8 +23,12 @@ public class TcpSpeechReceiver : MonoBehaviour
     private ConcurrentQueue<string> messages =
         new ConcurrentQueue<string>();
 
+    public TMP_Text speechText;
+
     void Start()
     {
+        Application.runInBackground = true;
+
         listenerThread = new Thread(Listen);
         listenerThread.IsBackground = true;
         listenerThread.Start();
@@ -68,15 +74,17 @@ public class TcpSpeechReceiver : MonoBehaviour
 
     void Update()
     {
-        while (messages.TryDequeue(
-                   out string message))
+        while (messages.TryDequeue(out string message))
         {
             SpeechMessage speech =
-                JsonUtility.FromJson<SpeechMessage>(
-                    message
-                );
+                JsonUtility.FromJson<SpeechMessage>(message);
 
             Debug.Log(speech.text);
+
+            if (speechText != null)
+            {
+                speechText.text = speech.text;
+            }
         }
     }
 
