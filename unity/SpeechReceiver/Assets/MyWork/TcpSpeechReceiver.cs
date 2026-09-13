@@ -42,6 +42,8 @@ public class TcpSpeechReceiver : MonoBehaviour
 
     public ActionVerifier actionVerifier;
 
+    public PermissionChecker permissionChecker;
+
     void Start()
     {
         Application.runInBackground = true;
@@ -95,23 +97,6 @@ public class TcpSpeechReceiver : MonoBehaviour
         {
             ActionRequest request =
                 JsonUtility.FromJson<ActionRequest>(message);
-            if (request.action == "move" &&
-                request.reference == "Human_1" &&
-                request.direction == "right")
-            {
-                Vector3 targetPosition =
-                    humanTransform.position +
-                    humanTransform.right * moveDistance;
-
-                aiTransform.position = targetPosition;
-
-                Debug.Log("AI_1 moved to: " + targetPosition);
-
-                if (actionVerifier != null)
-                {
-                    actionVerifier.VerifyRightPosition(request);
-                }
-            }
 
             Debug.Log(
                 $"Action: {request.action}, " +
@@ -125,6 +110,40 @@ public class TcpSpeechReceiver : MonoBehaviour
                     "Action: " + request.action + "\n" +
                     "Reference: " + request.reference + "\n" +
                     "Direction: " + request.direction;
+            }
+
+            if (request.action == "move" &&
+    request.reference == "Human_1" &&
+    request.direction == "right")
+            {
+                bool allowed = false;
+
+                if (permissionChecker != null)
+                {
+                    allowed = permissionChecker.IsAllowed(request);
+                }
+
+                if (allowed)
+                {
+                    Debug.Log("Permission: ALLOWED");
+
+                    Vector3 targetPosition =
+                        humanTransform.position +
+                        humanTransform.right * moveDistance;
+
+                    aiTransform.position = targetPosition;
+
+                    Debug.Log("AI_1 moved to: " + targetPosition);
+
+                    if (actionVerifier != null)
+                    {
+                        actionVerifier.VerifyRightPosition(request);
+                    }
+                }
+                else
+                {
+                    Debug.Log("Permission: DENIED");
+                }
             }
 
         }
