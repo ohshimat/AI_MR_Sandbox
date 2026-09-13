@@ -1,11 +1,11 @@
-using UnityEngine;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Collections.Concurrent;
-
 using TMPro;
+using UnityEditor.PackageManager.Requests;
+using UnityEngine;
 
 [System.Serializable]
 public class ActionRequest
@@ -35,6 +35,10 @@ public class TcpSpeechReceiver : MonoBehaviour
 
     public TMP_Text speechText;
 
+    public Transform humanTransform;
+    public Transform aiTransform;
+
+    public float moveDistance = 1.0f;
     void Start()
     {
         Application.runInBackground = true;
@@ -88,6 +92,18 @@ public class TcpSpeechReceiver : MonoBehaviour
         {
             ActionRequest request =
                 JsonUtility.FromJson<ActionRequest>(message);
+            if (request.action == "move" &&
+                request.reference == "Human_1" &&
+                request.direction == "right")
+            {
+                Vector3 targetPosition =
+                    humanTransform.position +
+                    humanTransform.right * moveDistance;
+
+                aiTransform.position = targetPosition;
+
+                Debug.Log("AI_1 moved to: " + targetPosition);
+            }
 
             Debug.Log(
                 $"Action: {request.action}, " +
@@ -102,7 +118,9 @@ public class TcpSpeechReceiver : MonoBehaviour
                     "Reference: " + request.reference + "\n" +
                     "Direction: " + request.direction;
             }
+
         }
+
     }
 
     void OnDestroy()
