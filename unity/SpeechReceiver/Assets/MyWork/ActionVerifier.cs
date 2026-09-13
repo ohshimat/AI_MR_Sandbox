@@ -9,6 +9,9 @@ public class ActionVerifier : MonoBehaviour
     public float tolerance = 0.05f;
 
     public ExperienceLogger experienceLogger;
+
+    public HumanEvaluator humanEvaluator;
+
     public void VerifyRightPosition(ActionRequest request)
     {
         Vector3 expectedPosition =
@@ -32,12 +35,18 @@ public class ActionVerifier : MonoBehaviour
             Debug.Log("Verification: FAIL  Error = " + error);
         }
 
-        if (experienceLogger != null)
+        if (humanEvaluator != null)
         {
-            experienceLogger.SaveExperience(
+            humanEvaluator.StartEvaluation(
                 request,
                 error,
                 passed
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "HumanEvaluator is not assigned."
             );
         }
 

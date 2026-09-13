@@ -13,6 +13,9 @@ public class ExperienceRecord
 
     public float error;
     public bool verificationPassed;
+
+    // CHECKPOINT-7で追加
+    public string humanEvaluation;
 }
 
 public class ExperienceLogger : MonoBehaviour
@@ -35,7 +38,8 @@ public class ExperienceLogger : MonoBehaviour
     public void SaveExperience(
         ActionRequest request,
         float error,
-        bool verificationPassed)
+        bool verificationPassed,
+        string humanEvaluation)
     {
         ExperienceRecord record =
             new ExperienceRecord();
@@ -52,9 +56,13 @@ public class ExperienceLogger : MonoBehaviour
         record.verificationPassed =
             verificationPassed;
 
+        record.humanEvaluation =
+            humanEvaluation;
+
         string json =
             JsonUtility.ToJson(record);
 
+        // ★ 実際にファイルへ追記する部分
         File.AppendAllText(
             logFilePath,
             json + Environment.NewLine
