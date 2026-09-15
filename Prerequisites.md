@@ -1,42 +1,65 @@
-はい．今回の「別PCでGitHubからクローンして再現する」作業をそのまま反映して，`Prerequisites.md` を作りましょう．  
-これはCheckpoint文書とは別に，**AI_MR_Sandboxを新しいPCで動かす前提環境**をまとめる文書にするとよいです．
+もちろんです。今回の「まっさらなPCからcloneして動作確認」までの実体験を反映した、更新版 `Prerequisites.md` の文案をまとめます。
 
-そのまま貼れる形です．
+特に今回は、**Workspace Trust、PowerShell Execution Policy、`.unity` / `.meta` のGit管理、Unity 6000.0.31f1、Python依存関係の再導入**を明示的に追加しています。
 
-```markdown
+````markdown
 # Prerequisites
 ## AI_MR_Sandbox Development Environment
 
-この文書は，AI_MR_Sandboxを新しいWindows PC上で再構築するための
-基本的な開発環境とセットアップ手順を記録する．
+この文書は，AI_MR_Sandboxを新しいWindows PC上で再構築し，
+GitHubからcloneしたリソースを再現するための前提環境と手順を記録する．
 
-本プロジェクトでは，GitHub上のソースコードを共有し，
-Python仮想環境などのローカル環境は各PC上で再構築する．
+本プロジェクトでは，
+
+```text
+GitHub
+=
+Source Code
+Unity Scene
+Configuration
+Documentation
+Checkpoint Records
+````
+
+を共有し，
+
+```text
+Python virtual environment
+Unity generated files
+Device-specific settings
+```
+
+は各PC上で再構築する．
 
 ---
 
-## 1. 基本環境
+## 1. Baseline Environment
 
-現時点の基本開発環境は以下とする．
+現時点の基準環境は以下とする．
 
 ```text
-OS          : Windows
-Editor      : Visual Studio Code
-Python      : 3.11.9
+OS              : Windows
+Editor          : Visual Studio Code
+Python          : 3.11.9
+Unity           : 6000.0.31f1
 Version Control : Git / GitHub
-Unity       : Unity project included in repository
 ```
 
-Pythonについては，
+CHECKPOINT-1からCHECKPOINT-7までのテストコンテンツは，
 
 ```text
+Unity 6000.0.31f1
 Python 3.11.9
 ```
 
-を基準バージョンとして使用する．
+を基準として動作確認している．
 
-Python 3.13等がPCに共存していてもよいが，
-AI_MR_SandboxではPython 3.11.9を選択する．
+再現性確認では，
+まず同じバージョンを使用する．
+
+Unityを最新版へ更新する場合は，
+基準環境で動作確認した後に，
+別branchまたはProject copyで検証することを推奨する．
 
 ---
 
@@ -44,7 +67,7 @@ AI_MR_SandboxではPython 3.11.9を選択する．
 
 Visual Studio Codeをインストールする．
 
-### 日本語化
+### 2.1 日本語化
 
 Extensionsから，
 
@@ -52,16 +75,16 @@ Extensionsから，
 Japanese Language Pack for Visual Studio Code
 ```
 
-をインストールする．
+を検索し，
+Microsoft製Extensionをインストールする．
 
-Microsoft製のExtensionを使用する．
-
-インストール後，表示言語を日本語に変更し，
+インストール後，
+表示言語を日本語へ変更し，
 VS Codeを再起動する．
 
 ---
 
-## 3. VS Codeの表示テーマ
+## 3. VS Code Theme
 
 視認性を考慮し，
 明るいテーマを使用する．
@@ -72,9 +95,9 @@ VS Codeを再起動する．
 Light Modern
 ```
 
-等のLight Themeを推奨する．
+等のLight Themeを使用している．
 
-テーマは，
+変更：
 
 ```text
 ファイル
@@ -83,43 +106,72 @@ Light Modern
 → 配色テーマ
 ```
 
-から変更できる．
-
 ---
 
-## 4. VS Code Workspace Trust
+## 4. Workspace Trust
 
 VS Codeでは，
-セキュリティ設定によりExtensionやPython機能が
-制限される場合がある．
-
-画面に，
-
-```text
-制限モード
-Restricted Mode
-```
-
-が表示されている場合には，
-自分で管理しているAI_MR_Sandboxフォルダについて，
-
-```text
-このフォルダーを信頼する
-```
-
-を選択する．
-
 Workspaceが信頼されていない場合，
 
 ```text
-Python:
+Restricted Mode
+制限モード
 ```
 
-コマンドがCommand Paletteに表示されないことがある．
+となり，
+Python Extensionや一部Commandが正常に動作しない場合がある．
+
+Command Palette：
+
+```text
+Ctrl + Shift + P
+```
+
+から，
+
+```text
+Workspaces: Manage Workspace Trust
+```
+
+または，
+
+```text
+ワークスペースの信頼を管理
+```
+
+を開き，
+自分で管理しているAI_MR_Sandbox Repositoryを信頼する．
 
 ---
 
-## 5. Python Extension
+## 5. Python
+
+Python 3.11.9をインストールする．
+
+他のPython versionが共存していてもよいが，
+本Projectでは，
+
+```text
+Python 3.11.9
+```
+
+をBaselineとする．
+
+確認：
+
+```powershell
+python --version
+```
+
+期待値：
+
+```text
+Python 3.11.9
+```
+
+---
+
+## 6. VS Code Python Extension
 
 VS Code Extensionsから，
 
@@ -134,15 +186,11 @@ Microsoft
 ms-python.python
 ```
 
-のPython Extensionをインストールする．
+をインストールする．
 
-必要に応じてPylance等が同時にインストールされても問題ない．
+必要に応じてPylance等が同時に導入されても問題ない．
 
----
-
-## 6. Python Interpreterの選択
-
-Python 3.11.9をPCへインストールした後，
+Command Palette：
 
 ```text
 Ctrl + Shift + P
@@ -154,21 +202,13 @@ Ctrl + Shift + P
 Python: インタープリターを選択
 ```
 
-を実行する．
-
-Python 3.11.9を選択する．
-
-確認：
-
-```powershell
-python --version
-```
-
-期待される結果：
+を実行し，
 
 ```text
 Python 3.11.9
 ```
+
+を選択する．
 
 ---
 
@@ -188,31 +228,15 @@ git --version
 git version 2.x.x.windows.x
 ```
 
-Gitが認識されれば準備完了である．
-
 ---
 
 ## 8. GitHub Repository
 
-AI_MR_SandboxのRepository：
+Repository：
 
 ```text
 https://github.com/ohshimat/AI_MR_Sandbox
 ```
-
-VS Codeから，
-
-```text
-Ctrl + Shift + P
-```
-
-を開き，
-
-```text
-Git: Clone
-```
-
-を選択する．
 
 Clone URL：
 
@@ -220,7 +244,18 @@ Clone URL：
 https://github.com/ohshimat/AI_MR_Sandbox.git
 ```
 
-保存先の親フォルダを指定する．
+VS Codeから，
+
+```text
+Ctrl + Shift + P
+→ Git: Clone
+```
+
+を選択する．
+
+保存先には，
+Repositoryそのものではなく
+親フォルダを指定する．
 
 例：
 
@@ -238,17 +273,11 @@ AI_MR_Sandbox
 
 ---
 
-## 9. Python仮想環境
+## 9. Python Virtual Environment
 
-Pythonの仮想環境はGitHubでは共有しない．
+Python仮想環境 `.venv` はGitHubでは共有しない．
 
-各PC上で，
-
-```text
-.venv
-```
-
-を新しく作成する．
+各PC上で新規に作成する．
 
 Repository rootで，
 
@@ -258,39 +287,69 @@ python -m venv .venv
 
 を実行する．
 
+---
+
+## 10. PowerShell Execution Policy
+
 Windows PowerShellでは，
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-で有効化する．
+を実行した際，
 
-成功するとTerminalの先頭が，
+```text
+PSSecurityException
+このシステムではスクリプトの実行が無効になっている
+```
+
+というエラーが出る場合がある．
+
+この場合，
+Current Userに対して，
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+を実行する．
+
+確認を求められた場合は，
+
+```text
+Y
+```
+
+を入力する．
+
+その後，
+VS Code Terminalを一度閉じ，
+新しいPowerShell Terminalを開く．
+
+再度，
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+を実行する．
+
+成功すると，
 
 ```text
 (.venv)
 ```
 
-となる．
+がTerminalの先頭に表示される．
 
-確認：
-
-```powershell
-python --version
-```
-
-結果：
-
-```text
-Python 3.11.9
-```
+`Unrestricted` や恒久的な `Bypass` は使用しない．
 
 ---
 
-## 10. .venv再作成時の注意
+## 11. .venv 再作成時の注意
 
-すでに `.venv` が有効になっている状態で，
+すでに `.venv` が有効な状態で，
 
 ```powershell
 python -m venv .venv
@@ -300,12 +359,12 @@ python -m venv .venv
 
 ```text
 Permission denied:
-...\ .venv\Scripts\python.exe
+...\.venv\Scripts\python.exe
 ```
 
-のようなエラーが発生する場合がある．
+が出る場合がある．
 
-この場合はまず，
+この場合は，
 
 ```powershell
 deactivate
@@ -313,13 +372,7 @@ deactivate
 
 を実行する．
 
-その後，
-
-```text
-.venv
-```
-
-フォルダを削除し，
+その後 `.venv` フォルダを削除し，
 
 ```powershell
 python -m venv .venv
@@ -327,14 +380,14 @@ python -m venv .venv
 
 を再実行する．
 
-`.venv` は各PC固有のローカル環境なので，
+`.venv` は各PC固有のローカル環境であり，
 削除・再作成して問題ない．
 
 ---
 
-## 11. Python Packages
+## 12. Python Dependencies
 
-現在のPython側実装では，
+CHECKPOINT-1からCHECKPOINT-7までのPython側実装では，
 少なくとも以下を使用する．
 
 ```text
@@ -343,7 +396,7 @@ numpy
 faster-whisper
 ```
 
-仮想環境を有効化した状態で，
+`.venv` を有効化した状態で，
 
 ```powershell
 pip install sounddevice numpy faster-whisper
@@ -369,40 +422,82 @@ faster-whisper
 
 ---
 
-## 12. Microphone
+## 13. requirements.txt
 
-音声認識Checkpointでは，
-PCから利用可能なAudio Input Deviceを確認する必要がある．
+将来的には，
 
-使用デバイス番号はPCごとに異なる可能性があるため，
-以前のPCで使用していた，
+```text
+requirements.txt
+```
+
+をRepositoryに含め，
+
+```powershell
+pip install -r requirements.txt
+```
+
+で依存関係を再構築できるようにする．
+
+これにより，
+複数PCおよび共同研究者間での
+Python環境再現性を向上させる．
+
+---
+
+## 14. Microphone
+
+音声認識では，
+使用するAudio Input Deviceを確認する必要がある．
+
+Microphoneのdevice IDは
+PCごとに異なる可能性がある．
+
+したがって，
 
 ```text
 device_id = 7
 ```
 
-等をそのまま使用しない．
+等の値を別PCへそのままコピーしない．
 
-新しいPCでは `sounddevice` により
-Audio Device一覧を確認し，
-使用するMicrophoneのdevice IDを設定する．
+`python-sounddevice` 等でAudio Device一覧を取得し，
+使用するMicrophoneを確認する．
 
-したがって，
-
-```text
-device_id
-```
-
-は環境依存パラメータとして扱う．
+device IDは環境依存パラメータとして扱う．
 
 ---
 
-## 13. Unity
+## 15. Unity Version
 
-Repositoryに含まれるUnity Projectを，
-Unity Hubから開く．
+現在のBaseline：
 
-初回起動時にはUnityが，
+```text
+Unity 6000.0.31f1
+```
+
+CHECKPOINT-1からCHECKPOINT-7までの
+Unity Test Contentは，
+このversionで確認している．
+
+新しいPCで再現する場合は，
+まず同じversionをUnity Hubから導入する．
+
+Projectを別versionで開く前に，
+Baseline versionでの動作を確認する．
+
+---
+
+## 16. Unity Project
+
+Repository内のUnity Project：
+
+```text
+unity/SpeechReceiver
+```
+
+をUnity Hubから開く．
+
+Unity初回起動時には，
 
 ```text
 Library
@@ -411,30 +506,75 @@ Obj
 Logs
 ```
 
-等のローカル生成ファイルを再構築する場合がある．
+等が再生成される．
 
-これらはGitHubでは共有しない．
-
-Unity Projectを開いた後，
-
-```text
-Hierarchy
-Scene
-Scripts
-Inspector references
-```
-
-が正しく復元されていることを確認する．
-
-特にCHECKPOINT-7以降では，
-Inspector上のComponent参照が動作に重要である．
+これらはGit管理しない．
 
 ---
 
-## 14. Unity Inspector Reference
+## 17. Unity Scene
 
-CHECKPOINT-7時点では，
-主な参照関係は以下である．
+CHECKPOINT-1からCHECKPOINT-7までのSceneは，
+
+```text
+unity/SpeechReceiver/Assets/MyWork/SandboxScene.unity
+```
+
+として保存する．
+
+Scene fileと同時に，
+
+```text
+SandboxScene.unity.meta
+```
+
+もGit管理する．
+
+重要：
+
+```text
+.unity
+.meta
+```
+
+は，
+Unity Sceneを別PCで再現するために必要である．
+
+C# Scriptのみでは，
+HierarchyやInspector Referenceは再現できない．
+
+---
+
+## 18. SceneをGit管理する重要性
+
+Scene fileがRepositoryに含まれていない場合，
+別PCでProjectを開いても，
+
+```text
+SpeechReceiver
+Human_1
+AI_1
+Permission
+Verification
+HumanEvaluation
+Experience
+```
+
+等のHierarchyは再現されない．
+
+また，
+Component間のInspector Referenceも
+Sceneに保存される．
+
+したがって，
+Unity Sceneは
+Checkpoint Runtime構成そのものとして扱う．
+
+---
+
+## 19. Unity Inspector References
+
+CHECKPOINT-7時点の主要な参照関係：
 
 ```text
 TcpSpeechReceiver
@@ -453,18 +593,23 @@ TcpSpeechReceiver
                     └── ExperienceLogger
 ```
 
-Clone後は，
-これらのInspector Referenceが維持されているか確認する．
+Clone後，
+Inspectorで参照が維持されているか確認する．
 
 特に，
+
+```text
+SpeechReceiver
+└─ TcpSpeechReceiver
+     ├─ Permission Checker → Permission
+     └─ Action Verifier    → Verification
+```
 
 ```text
 Verification
 └─ ActionVerifier
      └─ Human Evaluator → HumanEvaluation
 ```
-
-および，
 
 ```text
 HumanEvaluation
@@ -474,57 +619,133 @@ HumanEvaluation
 
 を確認する．
 
-参照が `None` になっている場合，
-コードにエラーがなくても処理が実行されない場合がある．
+`None` になっている場合，
+コードにエラーがなくても
+一部処理が実行されない場合がある．
 
 ---
 
-## 15. Gitで共有しないもの
+## 20. Gitで共有するもの
 
-以下は各PC上で再生成する．
+原則として，
+以下はRepositoryへ含める．
+
+```text
+Assets/
+ProjectSettings/
+Packages/
+*.unity
+*.unity.meta
+C# Scripts
+Python Scripts
+CHECKPOINT-*.md
+Prerequisites.md
+```
+
+Unity Sceneとmetaは必ず共有する．
+
+---
+
+## 21. Gitで共有しないもの
+
+以下は各PCで再生成する．
 
 ```text
 .venv/
 __pycache__/
 
-Unity/Library/
-Unity/Temp/
-Unity/Obj/
-Unity/Logs/
-Unity/UserSettings/
+Unity Library/
+Unity Temp/
+Unity Obj/
+Unity Logs/
+Unity UserSettings/
 ```
 
-これらはGitHub Repositoryには含めない．
-
-`.gitignore` により管理する．
+`.gitignore` により除外する．
 
 ---
 
-## 16. 最小動作確認
+## 22. Git Statusの確認
+
+Scene等を追加した後，
+
+```powershell
+git status
+```
+
+を確認する．
+
+例えば，
+
+```text
+Untracked files:
+    SandboxScene.unity
+    SandboxScene.unity.meta
+```
+
+と表示されている場合，
+まだGit管理されていない．
+
+追加：
+
+```powershell
+git add <file>
+```
+
+確認：
+
+```powershell
+git status
+```
+
+Commit後，
+
+```text
+nothing to commit, working tree clean
+```
+
+となれば，
+ローカル作業ツリーに未反映変更はない．
+
+---
+
+## 23. Baseline Reproduction Test
 
 新しいPCでは，
-一度にシステム全体を動かすのではなく，
 以下の順序で確認する．
 
 ```text
+VS Code
+↓
+Workspace Trust
+↓
 Python 3.11.9
+↓
+Git Clone
 ↓
 .venv
 ↓
-Python packages
+PowerShell Execution Policy
 ↓
-hello.py
+Python Dependencies
 ↓
-Microphone
+Unity 6000.0.31f1
 ↓
-Speech Recognition
+SandboxScene.unity
 ↓
-TCP/IP
+Inspector References
 ↓
-Unity
+Python Runtime
 ↓
-CHECKPOINT processing
+Unity Runtime
 ```
+
+一度に全体を確認せず，
+小さい単位から進める．
+
+---
+
+## 24. Minimal Python Test
 
 まず，
 
@@ -532,90 +753,102 @@ CHECKPOINT processing
 python hello.py
 ```
 
-等の最小Pythonプログラムから確認する．
+等の最小Programを実行する．
 
-その後，
+次に，
 
 ```text
 Microphone
-→ faster-whisper
-→ JSON
-→ TCP/IP
-→ Unity
+↓
+Speech Recognition
+↓
+JSON
+↓
+TCP/IP
+↓
+Unity
 ```
 
 の順に確認する．
 
 ---
 
-## 17. Repository再現性の基本方針
+## 25. Reproduction Result
 
-AI_MR_Sandboxでは，
-
-```text
-GitHub
-=
-Source Code
-Configuration
-Documentation
-Checkpoint Records
-```
-
-を共有する．
-
-一方，
+別PCにおいて，
 
 ```text
-Python virtual environment
-Unity generated files
-Device-specific settings
+GitHub Clone
+↓
+Python 3.11.9
+↓
+.venv
+↓
+Python Dependencies
+↓
+Unity 6000.0.31f1
+↓
+SandboxScene.unity
+↓
+Runtime Test
 ```
 
-は各PC上で再構築する．
+まで実施し，
+GitHubからcloneしたリソースが動作することを確認した．
 
-したがって基本方針は，
-
-```text
-Clone
-↓
-Local Environment Reconstruction
-↓
-Dependency Installation
-↓
-Checkpoint Reproduction
-```
-
-とする．
+これにより，
+CHECKPOINT-1からCHECKPOINT-7までの実装が，
+特定の1台のPCだけに依存せず，
+別PC上で再構築可能であることを確認した．
 
 ---
 
-## 18. 今後の改善
+## 26. Reproducibility Policy
 
-今後，Python package環境については，
+AI_MR_Sandboxの再現性は，
 
 ```text
-requirements.txt
+Repository
++
+Prerequisites
++
+Dependency Definition
++
+Unity Scene
++
+Inspector References
++
+Device-specific Configuration
 ```
 
-をRepositoryに追加し，
+を含めて成立するものとする．
 
-```powershell
-pip install -r requirements.txt
+単にSource CodeがGitHubに存在するだけでは，
+Runtime Environment全体の再現性は保証されない．
+
+---
+
+## 27. Future Extension
+
+CHECKPOINT-8以降では，
+独立したC/C++ AIR Managerを追加する予定である．
+
+そのため今後，
+
+```text
+C/C++ compiler
+Build environment
+TCP/IP ports
+AIR Manager executable
 ```
 
-だけで必要なPython packageを再構築できるようにする予定である．
+等もPrerequisitesへ追加する予定である．
 
-これにより，
-複数PCおよび共同研究者間での
-再現性をさらに高める．
 ```
 
-今回，別PCで実際に再構築してみたことで，`Prerequisites.md` に書くべきことがかなり具体化しました．特に **Workspace Trust，`.venv` の再作成，マイクのdevice IDがPC依存，Unity Inspector参照**の4点は，単なる一般的なセットアップ説明ではなく，このプロジェクト固有の重要事項です．
+今回の更新版では，単なる「インストール手順」ではなく，**実際に別PCで再現性テストを行って判明した注意事項**まで入れています。
 
-そして次に `requirements.txt` を作るのが非常に自然です．これをRepositoryへ入れれば，今回手作業で行った
+特に重要なのは，`SandboxScene.unity` と `.meta` を含めた点です。ここは今回のテストで初めて明確になった、かなり重要な知見です。
 
-```powershell
-pip install sounddevice numpy faster-whisper
+次に進めるなら，`requirements.txt` も同時に作っておくと，`Prerequisites.md` のPython依存関係部分がかなり簡潔になります。
 ```
-
-も再現手順として固定できます．
