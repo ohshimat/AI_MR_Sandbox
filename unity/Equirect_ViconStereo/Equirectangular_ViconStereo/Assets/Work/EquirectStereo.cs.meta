@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 4484c3dd6d492184a98bd8f9e76fc549
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - captureCamera: {instanceID: 0}
+  - cubeRTLeft: {instanceID: 0}
+  - cubeRTRight: {instanceID: 0}
+  - equirectRTLeft: {instanceID: 0}
+  - equirectRTRight: {instanceID: 0}
+  - equirectRTSBS: {fileID: 8400000, guid: dc5600c215129464c869e7d32e10145b, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
