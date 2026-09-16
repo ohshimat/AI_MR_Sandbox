@@ -21,3 +21,9 @@ UserSettings/
 # OS
 Thumbs.db
 .DS_Store
+
+# venv
+.venv
+
+# vscode
+.vscode
