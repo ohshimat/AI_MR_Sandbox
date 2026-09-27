@@ -413,13 +413,13 @@ MonoBehaviour:
   maxSpeed: 6
   maxAccel: 20
   separationRadius: 1
-  cohesionRadius: 5
-  alignmentRadius: 5
-  wSeparation: 1.2
-  wCohesion: 0.6
-  wAlignment: 0.8
+  cohesionRadius: 2
+  alignmentRadius: 2
+  wSeparation: 0.8
+  wCohesion: 0.8
+  wAlignment: 1.2
   damping: 0
-  cohTargetDistance: 2
+  cohTargetDistance: 1
   kSeparation: 1
   kCohesion: 0.3
   epsilon: 0.01
@@ -436,7 +436,7 @@ Transform:
   m_GameObject: {fileID: 1042172524}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.06, y: 0, z: -0.1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
