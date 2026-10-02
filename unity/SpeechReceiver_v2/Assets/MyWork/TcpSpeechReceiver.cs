@@ -1,0 +1,170 @@
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+using TMPro;
+using UnityEditor.PackageManager.Requests;
+using UnityEngine;
+
+[System.Serializable]
+public class ActionRequest
+{
+    public string type;
+    public string speaker;
+    public string action;
+    public string reference;
+    public string direction;
+}
+
+[System.Serializable]
+public class SpeechMessage
+{
+    public string type;
+    public string speaker;
+    public string text;
+}
+
+public class TcpSpeechReceiver : MonoBehaviour
+{
+    private TcpListener listener;
+    private Thread listenerThread;
+
+    private ConcurrentQueue<string> messages = new ConcurrentQueue<string>();
+
+    public TMP_Text speechText;
+
+    public Transform humanTransform;
+    public Transform aiTransform;
+
+    public float moveDistance = 1.0f;//Distance to move the AI entity when the action is allowed
+
+    public ActionVerifier actionVerifier;//Reference to the ActionVerifier script
+    public PermissionChecker permissionChecker; //Reference to the PermissionChecker script
+
+    public AIRStateSender airStateSender; //Reference to the AIRStateSender script
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        Application.runInBackground = true;
+
+        listenerThread = new Thread(Listen);
+        listenerThread.IsBackground = true;
+        listenerThread.Start();
+
+        Debug.Log("TCP server started.");
+    }
+
+    // Listen for incoming TCP connections
+    void Listen()
+    {
+        listener =
+            new TcpListener(IPAddress.Loopback, 50000);
+
+        listener.Start();
+
+        while (true)
+        {
+            using (TcpClient client =
+                   listener.AcceptTcpClient())
+
+            using (NetworkStream stream =
+                   client.GetStream())
+            {
+                byte[] buffer = new byte[4096];
+
+                int length =
+                    stream.Read(
+                        buffer,
+                        0,
+                        buffer.Length
+                    );
+
+                string message =
+                    Encoding.UTF8.GetString(
+                        buffer,
+                        0,
+                        length
+                    );
+
+                messages.Enqueue(message);
+            }
+        }
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        while (messages.TryDequeue(out string message))
+        {
+            ActionRequest request =
+                JsonUtility.FromJson<ActionRequest>(message);
+
+            Debug.Log(
+                $"Action: {request.action}, " +
+                $"Reference: {request.reference}, " +
+                $"Direction: {request.direction}"
+            );
+
+            if (speechText != null)
+            {
+                speechText.text =
+                    "Action: " + request.action + "\n" +
+                    "Reference: " + request.reference + "\n" +
+                    "Direction: " + request.direction;
+            }
+
+            if (request.action == "move" && request.reference == "Human_1" )
+            {
+                bool allowed = false;
+
+                if (permissionChecker != null)
+                {
+                    allowed = permissionChecker.IsAllowed(request);
+                }
+
+                if (allowed)
+                {
+                    Debug.Log("Permission: ALLOWED");
+
+                    /*
+                    Vector3 targetPosition =
+                        humanTransform.position +
+                        humanTransform.right * moveDistance;
+
+                    aiTransform.position = targetPosition;
+
+                    Debug.Log("AI_1 moved to: " + targetPosition);
+                    */
+
+                    if (airStateSender != null)
+                    {
+                        airStateSender.SendHumanState(request.direction);
+
+                        Debug.Log("Action executed through AIR Manager.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("AIRStateSender is not assigned.");
+                    }
+
+                    if (actionVerifier != null)
+                    {
+                        actionVerifier.VerifyRightPosition(request);
+                    }
+                }
+                else
+                {
+                    Debug.Log("Permission: DENIED");
+                }
+            }
+        }
+    }
+    // Stop the TCP listener when the application quits
+    void OnDestroy()
+    {
+        listener?.Stop();
+        listenerThread?.Interrupt();
+    }
+}
