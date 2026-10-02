@@ -151,7 +151,8 @@ public class TcpSpeechReceiver : MonoBehaviour
 
                     if (actionVerifier != null)
                     {
-                        actionVerifier.VerifyRightPosition(request);
+                        //actionVerifier.VerifyRightPosition(request);
+                        actionVerifier.VerifyPosition(request);
                     }
                 }
                 else
