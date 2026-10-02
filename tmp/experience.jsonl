@@ -1,0 +1,3 @@
+{"timestamp":"2026-10-02T21:09:29.5028950+09:00","speaker":"Human_1","action":"move","reference":"Human_1","direction":"right","error":0.0,"verificationPassed":true,"humanEvaluation":"correct"}
+{"timestamp":"2026-10-02T21:09:45.5931693+09:00","speaker":"Human_1","action":"move","reference":"Human_1","direction":"left","error":0.0,"verificationPassed":true,"humanEvaluation":"correct"}
+{"timestamp":"2026-10-02T21:10:02.0930498+09:00","speaker":"Human_1","action":"move","reference":"Human_1","direction":"forward","error":0.0,"verificationPassed":true,"humanEvaluation":"correct"}
