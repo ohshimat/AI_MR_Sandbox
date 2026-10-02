@@ -24,9 +24,29 @@ public class ExperienceLogger : MonoBehaviour
 
     void Start()
     {
+        string repositoryRoot =
+            Path.GetFullPath(
+                Path.Combine(
+                    Application.dataPath,
+                    "..",
+                    "..",
+                    ".."
+                )
+            );
+
+        string tmpDirectory =
+            Path.Combine(
+                repositoryRoot,
+                "tmp"
+            );
+
+        Directory.CreateDirectory(
+            tmpDirectory
+        );
+
         logFilePath =
             Path.Combine(
-                Application.persistentDataPath,
+                tmpDirectory,
                 "experience.jsonl"
             );
 
