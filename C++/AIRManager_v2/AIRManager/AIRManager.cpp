@@ -10,6 +10,7 @@
 
 //AIR Manager TCP Port = 50001
 
+//-------- Entity structure --------
 struct Entity
 {
     std::string id;
@@ -20,7 +21,6 @@ struct Entity
 
     float yaw;
 };
-
 //-------- JSON string extraction function --------
 std::string GetJsonString(
     const std::string& json,

@@ -1557,3 +1557,360 @@ git push
 > **CP1〜7でSIPFの主要なHuman-AI Interaction Loopを実装し，CP8でHumanとAIの意味的・空間的対応を担う独立AIR ManagerをそのLoopへ統合した．**
 
 となります．これは第二論文の実装成果をかなり端的に表しています．
+
+はい．`CHECKPOINT-8.md` の末尾に，**Checkpoint 8で得られたUnityコンテンツ構成上の設計指針**として追記しましょう．  
+既存の「39. Research Significance」の後に，以下を追加するのがよいと思います．
+
+```markdown
+---
+
+# Unity Runtime Packaging
+
+## 40. SandboxRuntime Prefab
+
+CHECKPOINT-8では，
+Human-AI Interaction RuntimeをScene固有要素から分離し，
+再利用可能なUnity Prefabとして構成する方針を定めた．
+
+Prefab Rootを，
+
+```text
+SandboxRuntime
+```
+
+とし，
+その直下にRuntime Componentを配置する．
+
+```text
+SandboxRuntime Prefab
+├─ SpeechReceiver
+├─ Permission
+├─ Verification
+├─ HumanEvaluation
+├─ Experience
+└─ AIRSender
+```
+
+各ComponentはHierarchy上では
+`SandboxRuntime` 直下の兄弟Nodeとして配置する．
+
+これは，
+
+```text
+Permission
+Verification
+HumanEvaluation
+Experience
+AIRSender
+```
+
+等が `SpeechReceiver` に従属する機能ではなく，
+それぞれ独立した責務を持つRuntime Componentであることを
+Hierarchy上でも明確にするためである．
+
+---
+
+## 41. Prefab内部の参照関係
+
+Hierarchy上では各Componentを並列に配置するが，
+処理上の参照関係は以下となる．
+
+```text
+SpeechReceiver
+ ├─ Permission      → Permission
+ ├─ Verification    → Verification
+ └─ AIRSender       → AIRSender
+
+Verification
+ └─ HumanEvaluator  → HumanEvaluation
+
+HumanEvaluation
+ └─ ExperienceLogger → Experience
+```
+
+したがって，
+
+```text
+Hierarchy
+=
+所有・構成関係
+```
+
+と，
+
+```text
+Reference
+=
+処理・依存関係
+```
+
+を区別する．
+
+さらにModule間で交換される情報については，
+
+```text
+Protocol
+=
+情報授受の意味・条件・規則
+```
+
+として扱う．
+
+本Projectでは，
+
+```text
+Hierarchy
+Reference
+Protocol
+```
+
+を異なる設計レベルとして区別する．
+
+---
+
+## 42. Scene側の基本Hierarchy
+
+SandboxRuntimeとは別に，
+Scene固有の要素についても役割ごとに階層化する．
+
+基本構成を以下とする．
+
+```text
+SandboxScene
+├─ Environment
+│   ├─ Floor
+│   ├─ Walls
+│   ├─ Objects
+│   └─ Lighting
+│
+├─ Entities
+│   ├─ Human_1
+│   └─ AI_1
+│
+├─ SandboxRuntime
+│   ├─ SpeechReceiver
+│   ├─ Permission
+│   ├─ Verification
+│   ├─ HumanEvaluation
+│   ├─ Experience
+│   └─ AIRSender
+│
+├─ UI
+│   └─ Canvas
+│       └─ SpeechText
+│
+├─ Systems
+│   └─ EventSystem
+│
+└─ CameraRig
+    └─ Main Camera
+```
+
+各階層の責務は以下とする．
+
+```text
+Environment
+= 実験・体験固有の環境
+
+Entities
+= Human，AI Actor，Objects等の主体・対象
+
+SandboxRuntime
+= Human-AI Interactionの再利用可能な実行機構
+
+UI
+= Human Interface
+
+Systems
+= EventSystem等のUnity標準補助機構
+
+CameraRig
+= 視点・表示・XR Device依存部分
+```
+
+---
+
+## 43. SandboxRuntimeに含めないもの
+
+SandboxRuntime Prefabの再利用性を維持するため，
+Scene固有またはDevice固有の要素は
+原則としてPrefab内部へ含めない．
+
+例：
+
+```text
+Human_1
+AI_1
+Environment Objects
+Canvas
+EventSystem
+Main Camera
+XR Rig
+MREAL Camera
+MREAL OpenXR Configuration
+VICON-specific Objects
+Quest-specific Objects
+```
+
+これらはScene側で管理し，
+SandboxRuntimeから必要なものだけを
+外部Referenceとして接続する．
+
+一方，
+
+```text
+SpeechReceiver
+Permission
+Verification
+HumanEvaluation
+Experience
+AIRSender
+```
+
+等のHuman-AI Interaction Logicは
+SandboxRuntime内部に保持する．
+
+---
+
+## 44. MREAL Templateへの導入
+
+今後，
+Canon MREAL用Unity Templateへ
+SandboxRuntime Prefabを導入する予定である．
+
+想定構成：
+
+```text
+MREAL Scene
+├─ MREALSystem
+│   ├─ OpenXR
+│   ├─ MREAL Camera / Tracking
+│   └─ MREAL-specific Components
+│
+├─ Environment
+│
+├─ Entities
+│   ├─ Human_1
+│   └─ AI_1
+│
+├─ SandboxRuntime
+│   ├─ SpeechReceiver
+│   ├─ Permission
+│   ├─ Verification
+│   ├─ HumanEvaluation
+│   ├─ Experience
+│   └─ AIRSender
+│
+├─ UI
+│
+└─ Systems
+```
+
+この構造では，
+
+```text
+MREAL
+=
+表示・Tracking・MR Environment
+
+SandboxRuntime
+=
+Human-AI Interaction Runtime
+```
+
+として責務を分離する．
+
+これにより，
+SandboxRuntimeそのものを変更せずに，
+
+```text
+通常Unity Scene
+MREAL
+Meta Quest
+XV Arena
+VICON連携Scene
+```
+
+等の異なるEnvironmentへ導入できる構造を目指す．
+
+---
+
+## 45. Unity Content Development Guideline
+
+CHECKPOINT-8の実装を通して，
+AI-MR Sandbox Projectにおける
+Unity Content Developmentの基本指針を以下のように定める．
+
+> Sceneは実験・体験固有のEnvironmentとEntityを定義し，
+> SandboxRuntime PrefabはHuman-AI Interactionの実行機構を提供する．
+> 両者は最小限の外部ReferenceおよびProtocolによって接続する．
+
+したがって，
+Unity Contentを開発する際には，
+
+```text
+Environment-dependent implementation
+        ↕
+SandboxRuntime
+        ↕
+External systems
+```
+
+を可能な限り分離する．
+
+この分離により，
+
+- Scene間でのRuntime再利用
+- MREAL等の異なるXR Environmentへの移植
+- Device固有実装とSandbox Logicの分離
+- Component間依存関係の明確化
+- Prefabによる配布・共有
+- 実験条件間でのRuntime統一
+
+を可能にする．
+
+---
+
+## 46. CHECKPOINT-8で得られた追加的成果
+
+CHECKPOINT-8では，
+独立AIR Managerの実装に加えて，
+
+```text
+AIR Runtime
++
+Unity SandboxRuntime Prefab
++
+Scene / Runtime Separation
+```
+
+という実装構成を得た．
+
+したがってCHECKPOINT-8の成果は，
+
+> AIRを独立Runtime Componentとして実装したこと
+
+だけではなく，
+
+> SandboxのHuman-AI Interaction Logicを
+> SceneおよびXR Device固有実装から分離し，
+> 再利用可能なUnity Runtime Unitとして構成する
+> 実装指針を得たこと
+
+を含む．
+
+これは今後のMREAL Template，
+VICON，
+XV Arena等へのSandbox導入における
+共通のUnity Content Development Guidelineとする．
+```
+
+特に **41節の**
+
+> `Hierarchy = 所有・構成関係`  
+> `Reference = 処理・依存関係`  
+> `Protocol = 情報授受の意味・条件・規則`
+
+という三層の整理は，第二論文でも使える重要な知見だと思います．
+
+また，Checkpoint 8の最終成果が **「AIR Managerを作った」だけでなく，「SandboxRuntimeを移植可能な単位として切り出した」** ところまで広がったので，MREALテンプレートへの次の展開にも非常につながりやすくなりました．
