@@ -1,5 +1,5 @@
-
 using UnityEngine;
+
 public class EscQuit : MonoBehaviour
 {
     void Update()

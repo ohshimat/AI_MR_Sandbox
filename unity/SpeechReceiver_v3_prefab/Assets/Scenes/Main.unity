@@ -574,6 +574,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7135433904832531577, guid: 967efec2d70c4d94bb7da6b1dd7885bd, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8706789793659427073, guid: 967efec2d70c4d94bb7da6b1dd7885bd, type: 3}
       propertyPath: m_Name
       value: DebugTools
