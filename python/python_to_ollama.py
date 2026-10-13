@@ -9,6 +9,7 @@ data = {
     "stream": False
 }
 
+
 request = urllib.request.Request(
     url,
     data=json.dumps(data).encode("utf-8"),
