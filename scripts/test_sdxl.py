@@ -8,13 +8,9 @@ from diffusers import StableDiffusionXLPipeline
 
 MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 
-CACHE_DIR = Path(
-    r"C:\Users\ohshimat\AI_MR_Sandbox_Data\models\huggingface"
-)
-
-OUTPUT_DIR = Path(
-    r"C:\Users\ohshimat\AI_MR_Sandbox_Data\outputs"
-)
+DATA_DIR = Path.home() / "AI_MR_Sandbox_Data"
+CACHE_DIR = DATA_DIR / "models" / "huggingface"
+OUTPUT_DIR = DATA_DIR / "outputs"
 
 PROMPT = (
     "A simple red cube placed on a white table, "
@@ -26,8 +22,8 @@ NEGATIVE_PROMPT = (
 )
 
 SEED = 12345
-WIDTH = 768
-HEIGHT = 768
+WIDTH = 512
+HEIGHT = 512
 STEPS = 20
 GUIDANCE_SCALE = 7.0
 
