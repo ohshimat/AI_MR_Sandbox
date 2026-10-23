@@ -8,9 +8,9 @@ from diffusers import StableDiffusionXLPipeline
 
 MODEL_ID = "stabilityai/stable-diffusion-xl-base-1.0"
 
-DATA_DIR = Path.home() / "AI_MR_Sandbox_Data"
-CACHE_DIR = DATA_DIR / "models" / "huggingface"
-OUTPUT_DIR = DATA_DIR / "outputs"
+WORKSPACE_DIR = Path.home() / "AI_MR_Workspace"
+CACHE_DIR = WORKSPACE_DIR / "models" / "huggingface"
+OUTPUT_DIR = WORKSPACE_DIR / "generated" / "smoke_tests"
 
 PROMPT = (
     "A simple red cube placed on a white table, "
@@ -32,7 +32,8 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     print("SDXLを読み込んでいます。")
-    print("初回はモデルをCドライブへダウンロードします。")
+    print(f"モデルキャッシュ: {CACHE_DIR}")
+    print(f"出力先: {OUTPUT_DIR}")
 
     pipe = StableDiffusionXLPipeline.from_pretrained(
         MODEL_ID,

@@ -27,3 +27,18 @@ Thumbs.db
 
 # vscode
 .vscode
+# Microsoft Office temporary lock files
+~$*
+
+# Visual Studio C++ build outputs
+# Keep portable executables for initial operation tests
+C++/**/x64/Debug/*
+!C++/**/x64/Debug/*.exe
+C++/**/x64/Release/*
+!C++/**/x64/Release/*.exe
+
+# Unity Burst debug output (not for distribution)
+**/*_BurstDebugInformation_DoNotShip/
+
+# Unity-generated IDE project files
+unity/**/*.csproj

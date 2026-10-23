@@ -1,0 +1,10 @@
+# Git attribute macros used by Unity projects
+[attr]lfs filter=lfs diff=lfs merge=lfs -text
+[attr]unity-json eol=lf linguist-language=json
+[attr]unity-yaml merge=unityyamlmerge eol=lf linguist-language=yaml
+
+# Documentation
+*.md text eol=lf
+
+# Git attribute files
+.gitattributes text eol=lf
