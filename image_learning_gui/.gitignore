@@ -1,0 +1,10 @@
+.gui_packages/
+.training_packages/
+.datasets_cache/
+.pip_temp/
+__pycache__/
+.pytest_cache/
+.preview/
+*.pyc
+config/user_settings.json
+deployment_manifest.json

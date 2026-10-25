@@ -1,0 +1,73 @@
+app:
+  title: "AI画像学習・生成GUI"
+  version: "0.7.7"
+  server_name: "127.0.0.1"
+  server_port: 7860
+  share: false
+
+paths:
+  python_executable: "C:\\AI_venvs\\AI_MR_Sandbox\\Scripts\\python.exe"
+  accelerate_executable: "C:\\AI_venvs\\AI_MR_Sandbox\\Scripts\\accelerate.exe"
+  training_script: "vendor\\diffusers-0.41.0\\examples\\dreambooth\\train_dreambooth_lora_sdxl.py"
+  generation_worker: "workers\\generate_image.py"
+  preview_cache: "C:\\AI_MR_Sandbox\\temp\\preview"
+  training_packages: ".training_packages"
+  datasets_cache: "C:\\AI_MR_Sandbox\\temp\\datasets"
+  model_snapshot_root: "C:\\AI_MR_Sandbox\\models\\huggingface\\models--stabilityai--stable-diffusion-xl-base-1.0\\snapshots"
+  workspace_root: "%USERPROFILE%\\AI_MR_Workspace"
+  lora_root: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs"
+  generated_root: "%USERPROFILE%\\AI_MR_Workspace\\generated"
+  records_root: "%USERPROFILE%\\AI_MR_Workspace\\gui_records"
+  acceptance_test_root: "%USERPROFILE%\\AI_MR_Workspace\\gui_records\\acceptance_tests"
+  user_settings_file: "%USERPROFILE%\\AI_MR_Workspace\\gui_state\\user_settings.json"
+
+ui_defaults:
+  training_image_dir: "%USERPROFILE%\\AI_MR_Workspace\\training\\instance_images"
+  training_output_dir: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs\\gui_experiment_001"
+  training_prompt: "a photo of aimrps01 person wearing a powered suit"
+  training_caption_mode: "固定プロンプト"
+  training_resume_checkpoint: ""
+  training_repetitions: 30
+  additional_steps: 600
+  target_steps: 600
+  generation_lora: ""
+  lora_strength: 1.0
+  generation_lora_2: ""
+  lora_strength_2: 0.7
+  generation_lora_3: ""
+  lora_strength_3: 0.7
+  generation_prompt: "a full-body photo of aimrps01 person wearing a powered suit, standing in a futuristic mixed reality research room, realistic photography, detailed armor, cinematic lighting"
+  generation_seed: 42
+  generation_width: 512
+  generation_height: 512
+  generation_output_dir: "%USERPROFILE%\\AI_MR_Workspace\\generated\\aimrps01_gui"
+  external_storage_root: ""
+  archive_experiment_name: "experiment_001"
+  archive_path: ""
+  restore_pc_root: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs\\restored_experiments"
+
+training:
+  resolution: 512
+  center_crop: true
+  train_batch_size: 1
+  gradient_accumulation_steps: 1
+  gradient_checkpointing: true
+  learning_rate: 1.0e-4
+  lr_scheduler: "constant"
+  lr_warmup_steps: 0
+  checkpointing_steps: 100
+  checkpoints_total_limit: 7
+  mixed_precision: "fp16"
+  rank: 8
+  dataloader_num_workers: 0
+  report_to: "tensorboard"
+  seed: 42
+  variant: "fp16"
+  train_text_encoder: false
+
+generation:
+  width: 512
+  height: 512
+  steps: 30
+  guidance_scale: 7.0
+  negative_prompt: "illustration, anime, cartoon, low quality, blurry, distorted face, extra fingers, extra limbs"
