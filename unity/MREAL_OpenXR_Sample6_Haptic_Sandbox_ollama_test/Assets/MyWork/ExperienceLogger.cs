@@ -24,29 +24,28 @@ public class ExperienceLogger : MonoBehaviour
 
     void Start()
     {
-        string repositoryRoot =
-            Path.GetFullPath(
-                Path.Combine(
-                    Application.dataPath,
-                    "..",
-                    "..",
-                    ".."
-                )
+        string workspaceDirectory =
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.UserProfile
+                ),
+                "AI_MR_Workspace"
             );
 
-        string tmpDirectory =
+        string logDirectory =
             Path.Combine(
-                repositoryRoot,
-                "tmp"
+                workspaceDirectory,
+                "gui_records",
+                "unity"
             );
 
         Directory.CreateDirectory(
-            tmpDirectory
+            logDirectory
         );
 
         logFilePath =
             Path.Combine(
-                tmpDirectory,
+                logDirectory,
                 "experience.jsonl"
             );
 

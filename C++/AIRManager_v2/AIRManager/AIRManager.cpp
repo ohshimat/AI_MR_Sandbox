@@ -199,7 +199,7 @@ int main()
                 << "{"
                 << "\"type\":\"air_target_position\","
                 << "\"reference\":\"Human_1\","
-                << "\"direction\":\"right\","
+                << "\"direction\":\"" << direction << "\","
                 << "\"x\":" << targetX << ","
                 << "\"y\":" << targetY << ","
                 << "\"z\":" << targetZ
