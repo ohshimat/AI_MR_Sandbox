@@ -1,29 +1,31 @@
 app:
   title: "AI画像学習・生成GUI"
-  version: "0.7.7"
+  version: "0.8.0"
   server_name: "127.0.0.1"
   server_port: 7860
   share: false
+  offline: true
+  analytics_enabled: false
 
 paths:
-  python_executable: "C:\\AI_venvs\\AI_MR_Sandbox\\Scripts\\python.exe"
-  accelerate_executable: "C:\\AI_venvs\\AI_MR_Sandbox\\Scripts\\accelerate.exe"
+  python_executable: "%AI_MR_IMAGE_PYTHON%"
+  accelerate_executable: "%AI_MR_IMAGE_ACCELERATE%"
   training_script: "vendor\\diffusers-0.41.0\\examples\\dreambooth\\train_dreambooth_lora_sdxl.py"
   generation_worker: "workers\\generate_image.py"
-  preview_cache: "C:\\AI_MR_Sandbox\\temp\\preview"
-  training_packages: ".training_packages"
-  datasets_cache: "C:\\AI_MR_Sandbox\\temp\\datasets"
-  model_snapshot_root: "C:\\AI_MR_Sandbox\\models\\huggingface\\models--stabilityai--stable-diffusion-xl-base-1.0\\snapshots"
-  workspace_root: "%USERPROFILE%\\AI_MR_Workspace"
-  lora_root: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs"
-  generated_root: "%USERPROFILE%\\AI_MR_Workspace\\generated"
-  records_root: "%USERPROFILE%\\AI_MR_Workspace\\gui_records"
-  acceptance_test_root: "%USERPROFILE%\\AI_MR_Workspace\\gui_records\\acceptance_tests"
-  user_settings_file: "%USERPROFILE%\\AI_MR_Workspace\\gui_state\\user_settings.json"
+  preview_cache: "%AI_MR_COMMON_ROOT%\\temp\\preview"
+  training_packages: "%AI_MR_TRAINING_PACKAGES%"
+  datasets_cache: "%AI_MR_COMMON_ROOT%\\temp\\datasets"
+  model_snapshot_root: "%AI_MR_COMMON_ROOT%\\models\\huggingface\\models--stabilityai--stable-diffusion-xl-base-1.0\\snapshots"
+  workspace_root: "%AI_MR_WORKSPACE%"
+  lora_root: "%AI_MR_WORKSPACE%\\lora_outputs"
+  generated_root: "%AI_MR_WORKSPACE%\\generated"
+  records_root: "%AI_MR_WORKSPACE%\\gui_records"
+  acceptance_test_root: "%AI_MR_WORKSPACE%\\gui_records\\acceptance_tests"
+  user_settings_file: "%AI_MR_WORKSPACE%\\gui_state\\user_settings.json"
 
 ui_defaults:
-  training_image_dir: "%USERPROFILE%\\AI_MR_Workspace\\training\\instance_images"
-  training_output_dir: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs\\gui_experiment_001"
+  training_image_dir: "%AI_MR_WORKSPACE%\\training\\instance_images"
+  training_output_dir: "%AI_MR_WORKSPACE%\\lora_outputs\\gui_experiment_001"
   training_prompt: "a photo of aimrps01 person wearing a powered suit"
   training_caption_mode: "固定プロンプト"
   training_resume_checkpoint: ""
@@ -40,11 +42,11 @@ ui_defaults:
   generation_seed: 42
   generation_width: 512
   generation_height: 512
-  generation_output_dir: "%USERPROFILE%\\AI_MR_Workspace\\generated\\aimrps01_gui"
+  generation_output_dir: "%AI_MR_WORKSPACE%\\generated\\aimrps01_gui"
   external_storage_root: ""
   archive_experiment_name: "experiment_001"
   archive_path: ""
-  restore_pc_root: "%USERPROFILE%\\AI_MR_Workspace\\lora_outputs\\restored_experiments"
+  restore_pc_root: "%AI_MR_WORKSPACE%\\lora_outputs\\restored_experiments"
 
 training:
   resolution: 512

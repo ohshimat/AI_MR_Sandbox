@@ -13,6 +13,47 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "defaults.yaml"
 
 
+def _portable_environment_defaults() -> dict[str, str]:
+    """Return PC-local resource defaults without fixing the portable drive."""
+
+    common_root = Path(os.environ.get("AI_MR_COMMON_ROOT", r"C:\AI_MR_Sandbox"))
+    legacy_gui_root = common_root / "image_learning_gui"
+    runtime_root = common_root / "runtime"
+    preferred_training_packages = runtime_root / "image_training_packages"
+    legacy_training_packages = legacy_gui_root / ".training_packages"
+    training_packages = (
+        preferred_training_packages
+        if preferred_training_packages.is_dir()
+        or not legacy_training_packages.is_dir()
+        else legacy_training_packages
+    )
+
+    return {
+        "AI_MR_COMMON_ROOT": str(common_root),
+        "AI_MR_WORKSPACE": os.environ.get(
+            "AI_MR_WORKSPACE", str(Path.home() / "AI_MR_Workspace")
+        ),
+        "AI_MR_IMAGE_PYTHON": os.environ.get(
+            "AI_MR_IMAGE_PYTHON",
+            r"C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe",
+        ),
+        "AI_MR_IMAGE_ACCELERATE": os.environ.get(
+            "AI_MR_IMAGE_ACCELERATE",
+            r"C:\AI_venvs\AI_MR_Sandbox\Scripts\accelerate.exe",
+        ),
+        "AI_MR_TRAINING_PACKAGES": os.environ.get(
+            "AI_MR_TRAINING_PACKAGES", str(training_packages)
+        ),
+    }
+
+
+def _expand_portable_value(value: str) -> str:
+    expanded = value
+    for name, default in _portable_environment_defaults().items():
+        expanded = expanded.replace(f"%{name}%", default)
+    return os.path.expandvars(expanded)
+
+
 class ConfigurationError(ValueError):
     """Raised when a required GUI configuration value is missing."""
 
@@ -37,11 +78,10 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
     project_local_keys = {
         "training_script",
         "generation_worker",
-        "training_packages",
     }
     for key, value in data.get("paths", {}).items():
         if value:
-            candidate = Path(os.path.expandvars(str(value))).expanduser()
+            candidate = Path(_expand_portable_value(str(value))).expanduser()
             if key in project_local_keys and not candidate.is_absolute():
                 data["paths"][key] = str((PROJECT_ROOT / candidate).resolve())
             else:
@@ -62,7 +102,7 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
         value = data.get("ui_defaults", {}).get(key)
         if value:
             data["ui_defaults"][key] = str(
-                Path(os.path.expandvars(str(value))).expanduser()
+                Path(_expand_portable_value(str(value))).expanduser()
             )
 
     return data

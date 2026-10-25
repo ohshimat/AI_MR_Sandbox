@@ -193,6 +193,6 @@ git -c core.quotePath=false status --short
 
 画像生成・学習GUIのソースは、リポジトリ直下の`image_learning_gui`へ収録する。SDXL Base、LoRA、生成画像、Python仮想環境、GUIへ導入したパッケージは大容量またはPC固有であるため、Gitへ含めない。
 
-初回配備と確認は`IMAGE_LEARNING_GUI_SETUP.md`に従う。標準構成では、ソースをポータブルSSDで共有し、実行用GUIとAI実行環境をPC本体へ配備し、研究データを`%USERPROFILE%\AI_MR_Workspace`へ保存する。
+初回設定と確認は`IMAGE_LEARNING_GUI_SETUP.md`に従う。標準構成では、GUI本体と操作入口をポータブルSSDに置き、AI実行環境、依存パッケージ、モデルをPC本体へ置き、研究データを`%USERPROFILE%\AI_MR_Workspace`へ保存する。
 
 画像生成・学習機能も再現確認の対象とする場合は、同文書の合格条件まで確認した後、`CURRENT_SYSTEM_TEST.md`の統合試験へ進む。

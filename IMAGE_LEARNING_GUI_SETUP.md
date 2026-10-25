@@ -2,7 +2,7 @@
 
 ## 1. 目的
 
-この文書は、`AI_MR_Sandbox`に収録された画像生成・学習GUIを別のPCで配備し、SDXL Baseによる生成とDreamBooth LoRA学習の基本動作を確認する手順を示す。
+この文書は、`AI_MR_Sandbox`に収録された画像生成・学習GUIをポータブル側から起動し、別のPCでSDXL Baseによる生成とDreamBooth LoRA学習の基本動作を確認する手順を示す。
 
 GUIのソースはGitで共有する。大容量またはPC固有の実体はGitへ入れず、PCごとに構築する。
 
@@ -14,8 +14,8 @@ GUIのソースはGitで共有する。大容量またはPC固有の実体はGit
 | `C:\AI_venvs\AI_MR_Sandbox` | PyTorch、Diffusers等の画像AI実行環境 | 対象外 |
 | `C:\AI_MR_Sandbox\models` | SDXL Base | 対象外 |
 | `%USERPROFILE%\AI_MR_Workspace` | 学習画像、LoRA、生成画像、実験記録 | 対象外 |
-| `.gui_packages`、`.training_packages` | GUI固有の導入済みパッケージ | 対象外・PCごとに再生成 |
-| `.preview`、`.datasets_cache` | 再生成可能な一時データ | 対象外 |
+| `C:\AI_MR_Sandbox\runtime` | GUI・学習固有の導入済みパッケージ | 対象外・PCごとに再生成 |
+| `C:\AI_MR_Sandbox\temp` | プレビュー、datasets、pipの一時データ | 対象外 |
 
 ## 3. 前提条件
 
@@ -33,48 +33,38 @@ GUIのソースはGitで共有する。大容量またはPC固有の実体はGit
 
 `CUDA: True`が表示されることを確認する。
 
-## 4. GUIをPC本体へ配備
+## 4. ポータブル入口から初期設定
 
 リポジトリ直下から次を実行する。
 
 ```powershell
-& ".\image_learning_gui\deploy_gui_to_pc.cmd"
+& ".\setup_image_learning_gui.cmd"
 ```
 
-既に`C:\AI_MR_Sandbox\image_learning_gui`が存在するPCでは、GUIを終了してから次を実行する。
+この処理は、GUI本体をポータブル側に保ったまま、次を実行する。
+
+1. 画像AI用Pythonを確認する。
+2. Gradio等を`C:\AI_MR_Sandbox\runtime\image_gui_packages`へ準備する。
+3. `datasets`等を`C:\AI_MR_Sandbox\runtime\image_training_packages`へ準備する。
+4. 旧運用GUIに検証済みパッケージがある場合は、ダウンロードせず共通runtimeへ移行する。
+5. GUIの自動テストを実行する。
+
+`57 passed`と`Tests : OK`が表示されれば成功である。既存のPyTorchやDiffusersは上書きしない。
+
+初回セットアップでロック済み依存パッケージがPC内にない場合だけ、インターネット接続が必要になる。セットアップとSDXL Baseの配置が完了した後は、ネットワークを切断して実験できる。
+
+## 5. 保存層と操作入口
+
+操作は常にポータブルリポジトリから始める。Cドライブ側はPython、依存パッケージ、モデル、一時データだけを保存する実行資源層であり、C側のGUIコピーを直接操作しない。
+
+外部SSDのドライブレターが変わっても、リポジトリ直下の同じ起動ファイルを使用する。
+
+GUI起動時には、Hugging Face Hub、Transformers、Datasetsをオフラインモードにし、Gradioの分析送信を無効化する。SDXLは`local_files_only=True`で読み込む。学習・生成データを外部サービスへ自動送信しない。
+
+## 6. GUIの起動
 
 ```powershell
-& ".\image_learning_gui\update_gui_on_pc.cmd"
-```
-
-配備処理は、ソースと主要ファイルのSHA-256を照合する。`.gui_packages`、`.training_packages`、キャッシュ、プレビュー、ユーザー設定はコピーしない。
-
-## 5. GUI固有依存関係の導入
-
-初回だけ、PC本体へ配備したGUIフォルダーで次を順に実行する。
-
-```powershell
-Set-Location "C:\AI_MR_Sandbox\image_learning_gui"
-& ".\install_gui_dependencies.cmd"
-& ".\install_training_dependencies.cmd"
-```
-
-Gradio等は`.gui_packages`、`datasets`等は`.training_packages`へ分離して導入される。既存のPyTorchやDiffusersを上書きしない。
-
-## 6. 自動テスト
-
-```powershell
-Set-Location "C:\AI_MR_Sandbox\image_learning_gui"
-$env:PYTHONPATH = "$PWD\.gui_packages"
-& "C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe" -m pytest -q
-```
-
-全テストが成功することを確認する。
-
-## 7. GUIの起動
-
-```powershell
-& "C:\AI_MR_Sandbox\image_learning_gui\start_gui.cmd"
+& ".\start_image_learning_gui.cmd"
 ```
 
 ブラウザで`http://127.0.0.1:7860`が開く。外部公開は行わない。
@@ -86,8 +76,10 @@ $env:PYTHONPATH = "$PWD\.gui_packages"
 - DreamBooth学習スクリプトが見つかる
 - 必須Pythonパッケージが読み込まれる
 - GUIのバージョンが表示される
+- オフライン実験モードが有効
+- Gradio分析送信が無効
 
-## 8. 画像生成試験
+## 7. 画像生成試験
 
 1. 「画像生成」で利用するLoRAを必要に応じて指定する。
 2. LoRA係数、prompt、seed、幅、高さ、保存先を確認する。
@@ -97,7 +89,7 @@ $env:PYTHONPATH = "$PWD\.gui_packages"
 
 既存の研究用LoRAがないPCでは、SDXL Baseのみの生成成功を必須とし、LoRA生成は利用可能な試験データを準備してから行う。
 
-## 9. 最小学習試験
+## 8. 最小学習試験
 
 本番の学習フォルダーを使わず、専用の試験用画像・出力フォルダーを用意する。
 
@@ -110,7 +102,7 @@ $env:PYTHONPATH = "$PWD\.gui_packages"
 
 既存のLoRA出力先や`first_test`を新規学習で上書きしない。
 
-## 10. Git状態の確認
+## 9. Git状態の確認
 
 GUIを終了し、リポジトリ直下で次を実行する。
 
@@ -120,10 +112,10 @@ git -c core.quotePath=false status --short
 
 モデル、LoRA、生成画像、`.gui_packages`、`.training_packages`、キャッシュが表示されないことを確認する。意図しない変更がなければ正常である。
 
-## 11. 合格条件
+## 10. 合格条件
 
 - GUIソースがGitから取得できる。
-- PC運用配置へ配備または更新できる。
+- ポータブルリポジトリからセットアップと起動ができる。
 - GUI固有依存関係をロックファイルから再構築できる。
 - 自動テストがすべて成功する。
 - CUDAとSDXL BaseがGUIで認識される。

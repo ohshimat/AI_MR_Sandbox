@@ -2,9 +2,9 @@
 
 ## 1. 起動
 
-正式配置`C:\AI_MR_Sandbox\image_learning_gui`の`start_gui.cmd`をダブルクリックする。
+ポータブルリポジトリ直下の`start_image_learning_gui.cmd`をダブルクリックする。
 
-`Documents\Codex`配下は開発原本であり、通常の学習・画像生成には使用しない。正式配置がまだない場合は、開発原本の`deploy_gui_to_pc.cmd`を一度実行する。
+初回だけ、同じ場所にある`setup_image_learning_gui.cmd`を先に実行する。GUI本体はポータブル側から動作し、Python、依存パッケージ、SDXL Base等の大容量実行資源だけをPC本体から参照する。
 
 ブラウザで次のアドレスが開く。
 
@@ -13,6 +13,8 @@ http://127.0.0.1:7860
 ```
 
 このGUIはローカルPCだけで動作し、外部公開URLを作らない。
+
+起動時にHugging Face Hub、Transformers、Datasetsのオフラインモードを有効化し、Gradioの分析送信を無効化する。初回セットアップとモデル取得の完了後は、ネットワークを切断した状態でも実験できる。
 
 ## 2. 最初に環境を確認
 
@@ -51,7 +53,7 @@ LoRA 3: 空欄LoRA        係数 0.4
 
 生成後のJSONには、使用した全LoRAのパス、係数、SHA-256、内部アダプター名が保存される。
 
-プレビューが更新されない場合は、古いGUIサーバーを `Ctrl+C` で終了し、`start_gui.cmd`から再起動する。生成画像本体は指定フォルダへ、ブラウザ表示用の複製はGUIフォルダ内の `.preview` へ保存される。
+プレビューが更新されない場合は、古いGUIサーバーを`Ctrl+C`で終了し、リポジトリ直下の`start_image_learning_gui.cmd`から再起動する。生成画像本体は指定フォルダへ、ブラウザ表示用の複製はPC共通の一時領域へ保存される。
 
 ## 4. 学習画像を検査
 
@@ -84,7 +86,7 @@ image_001.txt
 
 固定プロンプト方式も引き続き使用できる。この場合、GUIは画像だけを一時作業フォルダへ複製し、同名`.txt`を画像として誤読しない。
 
-初回導入またはGUIフォルダを新しい場所へコピーした場合は、`install_training_dependencies.cmd`を一度実行する。依存パッケージは`.training_packages`へ保存され、既存のPyTorch仮想環境は変更しない。
+初回導入時は、リポジトリ直下の`setup_image_learning_gui.cmd`を一度実行する。依存パッケージはPC共通runtimeへ保存され、既存のPyTorch仮想環境は変更しない。
 
 ## 5. 最小回数での動作確認
 

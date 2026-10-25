@@ -87,7 +87,7 @@ try {
         deployed_at = (Get-Date).ToString("o")
         source = $SourceRoot
         target = $TargetRoot
-        gui_version = "0.7.7"
+        gui_version = "0.8.0"
         workspace_root = (Join-Path $env:USERPROFILE "AI_MR_Workspace")
         temp_root = (Join-Path $ExpectedParent "temp")
         files = $Hashes

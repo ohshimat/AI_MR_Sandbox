@@ -52,6 +52,10 @@ class AppController:
         settings_file = self.config.get("paths", {}).get(
             "user_settings_file", "未設定"
         )
+        offline = bool(self.config.get("app", {}).get("offline", False))
+        analytics = bool(
+            self.config.get("app", {}).get("analytics_enabled", False)
+        )
         gui_information = "\n".join(
             (
                 "### GUI情報",
@@ -60,6 +64,8 @@ class AppController:
                 f"- GUI本体：`{gui_root}`",
                 f"- ユーザー作業領域：`{workspace_root}`",
                 f"- ユーザー設定：`{settings_file}`",
+                f"- オフライン実験モード：**{'有効' if offline else '無効'}**",
+                f"- Gradio分析送信：**{'有効' if analytics else '無効'}**",
             )
         )
         return gui_information + "\n\n" + inspect_environment(self.config).to_markdown()

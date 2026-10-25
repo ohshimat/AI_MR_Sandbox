@@ -1,9 +1,20 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from core.config import load_config, merged_settings
 from core.controller import AppController
+
+
+OFFLINE_ENVIRONMENT = {
+    "GRADIO_ANALYTICS_ENABLED": "False",
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1",
+}
+for environment_name, environment_value in OFFLINE_ENVIRONMENT.items():
+    os.environ[environment_name] = environment_value
 
 
 APP_CSS = """
@@ -94,7 +105,7 @@ def build_app():
         import gradio as gr
     except ImportError as error:
         raise SystemExit(
-            "Gradioが未導入です。install_gui_dependencies.cmdを実行してください。"
+            "Gradioが未導入です。リポジトリ直下のsetup_image_learning_gui.cmdを実行してください。"
         ) from error
 
     config = merged_settings(load_config())
@@ -120,7 +131,10 @@ def build_app():
             plan,
         )
 
-    with gr.Blocks(title=config["app"]["title"]) as demo:
+    with gr.Blocks(
+        title=config["app"]["title"],
+        analytics_enabled=bool(config["app"].get("analytics_enabled", False)),
+    ) as demo:
         gr.Markdown(
             "# AI画像学習・生成GUI\n"
             "SDXL BaseとDreamBooth LoRAを使用する、研究用の完全ローカル実験画面です。"

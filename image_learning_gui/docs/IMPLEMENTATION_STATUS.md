@@ -39,6 +39,8 @@
 - DreamBooth SDXLスクリプトのGUI内vendor固定配置と相対パス参照
 - 公式ソースのコミットID・SHA-256・ライセンス記録
 - 開発原本から`C:\AI_MR_Sandbox\image_learning_gui`への非上書き配備・SHA-256照合
+- ポータブルリポジトリを全操作の入口とする起動・セットアップ方式
+- GUI依存関係をPC共通runtimeへ分離し、旧配置から移行できる構成
 
 ### 検証済み
 

@@ -2,11 +2,13 @@
 
 SDXL BaseとDreamBooth LoRAを完全ローカルで学習・生成する研究用GUIである。
 
-Git管理する開発原本は、`AI_MR_Sandbox`リポジトリ直下の`image_learning_gui`である。外部SSDのドライブレターが変わっても、GUI内のworkerと学習スクリプトは相対パスで解決される。
+初回セットアップとモデル取得の完了後は、Hugging Face関連ライブラリをオフラインモードに固定し、Gradioの分析送信を無効化して実験する。
 
-正式なPC運用配置は`C:\AI_MR_Sandbox\image_learning_gui`とする。リポジトリ上の`deploy_gui_to_pc.cmd`を実行すると、運用用コピーを作成できる。リポジトリ上のGUIを直接起動して試験することもできる。
+Git管理する実行原本は、`AI_MR_Sandbox`リポジトリ直下の`image_learning_gui`である。外部SSDのドライブレターが変わっても、GUI内のworkerと学習スクリプトは相対パスで解決される。
 
-正式配置済みGUIを更新する場合は、開発原本の`update_gui_on_pc.cmd`を実行する。更新前のGUIは`C:\AI_MR_Sandbox\backups`へ退避され、主要ファイルのSHA-256照合後に切り替えられる。
+すべての操作は、リポジトリ直下の`setup_image_learning_gui.cmd`と`start_image_learning_gui.cmd`から開始する。GUI本体をCドライブへ複製する必要はない。
+
+旧方式の`deploy_gui_to_pc`と`update_gui_on_pc`は、既存PCとの互換確認用として残している。新しいポータブル運用では使用しない。
 
 GUIのソースは持ち運べるが、SDXL Base、LoRA、生成画像、Python仮想環境はGitへ含めない。PC共通リソースとユーザー作業領域をGUIから参照する。
 
@@ -32,15 +34,15 @@ GUIのソースは持ち運べるが、SDXL Base、LoRA、生成画像、Python�
 
 ## 初回だけ行うこと
 
-画像生成・学習用Python環境とSDXL Baseを準備した後、`install_gui_dependencies.cmd`と`install_training_dependencies.cmd`を実行する。
+画像生成・学習用Python環境とSDXL Baseを準備した後、リポジトリ直下の`setup_image_learning_gui.cmd`を実行する。
 
-Gradioとpytestはプロジェクト内の `.gui_packages` へ分離して導入する。既存のAI_MR_Sandbox仮想環境にあるPyTorch、Diffusers等は変更しない。
+Gradioとpytestは`C:\AI_MR_Sandbox\runtime\image_gui_packages`へ分離して導入する。既存のAI_MR_Sandbox仮想環境にあるPyTorch、Diffusers等は変更しない。
 
-画像別キャプションに必要な`datasets`も、プロジェクト内の`.training_packages`へ分離して導入する。学習時の一時キャッシュは`.datasets_cache`を使用する。
+画像別キャプションに必要な`datasets`も、`C:\AI_MR_Sandbox\runtime\image_training_packages`へ分離して導入する。旧運用フォルダーに検証済みパッケージがある場合、初回セットアップはそれを共通runtimeへ移行する。
 
 ## 起動
 
-リポジトリ上または正式配置後の`image_learning_gui\start_gui.cmd`をダブルクリックする。
+リポジトリ直下の`start_image_learning_gui.cmd`をダブルクリックする。
 
 ブラウザで `http://127.0.0.1:7860` が開く。外部公開は行わない。
 
@@ -71,12 +73,9 @@ DreamBooth SDXL学習スクリプトはGUI内の`vendor\diffusers-0.41.0`に固�
 ## テスト
 
 ```powershell
-$env:PYTHONPATH = "$PWD\.gui_packages"
-& "C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe" -m pytest -q
+& ".\setup_image_learning_gui.ps1"
 ```
 
 Gradio導入前でも、標準ライブラリのテスト実行方法を使用できる。
 
-```powershell
-& "C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe" -m unittest discover -s tests -v
-```
+セットアップ処理の最後に、ポータブル側の`image_learning_gui\tests`が自動実行される。
