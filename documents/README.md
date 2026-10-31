@@ -26,8 +26,9 @@ CH10.5〜10.7はCH11に向けた補助的な導入・検証記録である。
 | CH10.7 | [CH10.7-ImageLearning.md](CH10.7-ImageLearning.md) | AI画像学習環境の導入とテスト |
 | CH11 | [CH11-DemoReproduction.md](CH11-DemoReproduction.md) | 音声操作・会話GUIとデモ再現手順 |
 | CH12 | [CH12-Portable.md](CH12-Portable.md) | PC・ユーザ・Portableの環境分離と検証 |
+| CH12図 | [CH12-AIRManager-Sequence.pptx](CH12-AIRManager-Sequence.pptx) | AI_1移動のシーケンス図：UnityとAIR Managerの座標授受（実測／コード照合待ちを区別） |
 
-**検証範囲の注意：** CH11の会話・音声応答のOpenAI API実機確認、およびCH12の新PC側Runtime構築・GPU実行は、各文書で未検証として区別する。
+**検証範囲の注意：** CH11の会話・音声応答のOpenAI API実機確認は未検証。CH12の新PC側RuntimeのCPU環境構築と、音声入力からAIR Manager経由のAI_1移動までは実機検証済み。GPU実行、Action Verification、Experience Loggingの実動作は未検証として区別する。
 
 このREADME冒頭の3行は従来の実装メモとして保全しており、現在の構成が同一であることを保証しない。
 <!-- CHAPTER_INDEX_END -->
