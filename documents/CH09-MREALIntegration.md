@@ -1,6 +1,3 @@
-もちろんです．**CP10で実現したヘッドトラッキングはまだ含めず，CP9終了時点の状態**として再掲します．そのまま `CHECKPOINT-9.md` に保存できる形です．
-
-```markdown
 # CHECKPOINT-9
 # MREAL × AI-MR Sandbox Integration
 
@@ -851,14 +848,3 @@ CHECKPOINT-9の基本統合は成立した．
 次段階では，
 MREAL Head Trackingおよび
 実空間座標との接続を進める．
-```
-
-この版なら，**CP9の終了地点と，その後CP10で実際に達成した内容が混ざりません**．
-
-流れとしても，
-
-**CP8：Sandboxを成立させる  
-→ CP9：SandboxをMREALへ導入してAI＋MRを成立させる  
-→ CP10：実空間のHumanを接続する**
-
-と，非常に明瞭になっています．
