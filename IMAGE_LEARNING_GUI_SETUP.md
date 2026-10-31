@@ -19,8 +19,8 @@ GUIのソースはGitで共有する。大容量またはPC固有の実体はGit
 
 ## 3. 前提条件
 
-- `CP10.6_InstallImageGeneration.md`に相当する画像生成環境が構築済みである。
-- `CP10.7_InstallImageLearning.md`に相当するLoRA学習環境が構築済みである。
+- `CH10.6-ImageGeneration.md`に相当する画像生成環境が構築済みである。
+- `CH10.7-ImageLearning.md`に相当するLoRA学習環境が構築済みである。
 - `C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe`からCUDAを利用できる。
 - `C:\AI_MR_Sandbox\models\huggingface`以下にSDXL Baseがある。
 - GPUメモリを使用するUnity、Ollama、LM Studioなどは画像試験前に終了する。
