@@ -80,18 +80,22 @@ class EnvironmentReport:
 
 
 def resolve_model_dir(snapshot_root: str | Path) -> Path | None:
+    if not str(snapshot_root).strip():
+        return None
     root = Path(snapshot_root).expanduser()
     try:
         if not root.is_dir():
             return None
+        if (root / "model_index.json").is_file():
+            return root.resolve()
         candidates = sorted(
-            root.glob("*/model_index.json"),
+            (path for path in root.glob("*/model_index.json") if path.is_file()),
             key=lambda path: path.stat().st_mtime,
             reverse=True,
         )
+        return candidates[0].parent.resolve() if candidates else None
     except OSError:
         return None
-    return candidates[0].parent.resolve() if candidates else None
 
 
 def _python_environment(
@@ -200,7 +204,7 @@ def inspect_environment(config: dict[str, Any]) -> EnvironmentReport:
         "Python": _is_file(paths["python_executable"]),
         "Accelerate": _is_file(paths["accelerate_executable"]),
         "DreamBooth学習スクリプト": _is_file(paths["training_script"]),
-        "SDXL snapshotルート": _is_dir(paths["model_snapshot_root"]),
+        "SDXLモデルパス": model_dir is not None,
     }
 
     python_details: dict[str, Any] = {
@@ -225,7 +229,11 @@ def inspect_environment(config: dict[str, Any]) -> EnvironmentReport:
     if not cuda_available:
         errors.append("CUDA GPUを利用できません。")
     if model_dir is None:
-        errors.append("SDXL Baseのmodel_index.jsonが見つかりません。")
+        errors.append(
+            "SDXL Baseのmodel_index.jsonが見つかりません: "
+            f"{paths['model_snapshot_root']!r} "
+            "（指定ディレクトリ直下またはrevisionサブディレクトリ内）"
+        )
     for name, exists in required.items():
         if not exists:
             errors.append(f"必須パスが見つかりません: {name}")

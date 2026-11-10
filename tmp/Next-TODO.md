@@ -86,3 +86,113 @@ $src='.\tmp\experience.jsonl'; $dst='C:\Users\vruser_1\AI_MR_Workspace\evidence\
 ## 6. 次回の会話で伝える短い申し送り
 
 「`E:\AI_MR_Sandbox\tmp\Next-TODO.md` の続きです。CH12の成功ケースE2EとUML図のGitHub保存（コミット`70bec9e`）は完了、Experienceは4件で10月31日のright/PASS/correctを含みます。まずB側Workspaceへの証拠バックアップのSHA256を確認し、その後、Verification FAIL／Human Evaluation incorrect／通信障害の試験を1段階ずつ進めたいです。公式Unity版は `_ollama_test` ではありません。PowerShellは1行ずつ、Preview→Apply→Verifyの順でお願いします。」
+
+<!-- CH14-GUI-E2E-2026-11-10 -->
+
+## 2026-11-10：画像学習GUI 第14段階完了
+- [x] CH10.7：SDXL Base 1.0による画像生成、DreamBooth LoRA最小学習・再読込・生成を実機確認。
+- [x] GUIモデル参照汎用化：AI_MR_SDXL_MODEL_PATHによる明示指定、直接配置・Hugging Face snapshots対応、不正な明示指定時のフォールバック禁止。
+- [x] GUI回帰テスト：66件すべてPASS。
+- [x] GUI起動・環境診断：実機PASS。
+- [x] 第14段階：GUI → SDXL → LoRA → PNG保存、生成画像の目視確認までPASS。
+- [ ] 証跡補完：GUI生成日時、出力PNGパス、SHA256、生成ログ、result JSONの保存先を記録。
+- [ ] 第15段階：GUIから最小LoRA学習E2Eを実行。既存データとLoRAを保全し、独立した新規出力先を使用。
+- [ ] 第15段階：学習ログ、LoRA重み、再読込生成、結果JSONを検証。
+- [ ] 品質改善候補：プロセス管理テストのResourceWarningを調査。
+- [ ] 汎用化の記録：PC固有設定と共通ソースの分離を環境構築手順書へ反映。
+
+## 2026-11-10：画像学習GUI 第15段階 — LoRA学習E2E検証記録
+
+**実験ID：** `gui_e2e_20261110_01`
+**検証目的：** GUIからの学習画像読込、DreamBooth LoRA学習、重み保存、再読込、画像生成までの一連の処理を実機で検証する。
+
+### 1. 実験環境
+
+| 項目 | 内容 |
+|---|---|
+| 検証機GPU | NVIDIA RTX A4500（20GB VRAM） |
+| GUI | AI_MR_Sandbox / image_learning_gui |
+| ベースモデル | Stable Diffusion XL Base 1.0 |
+| モデル配置 | `C:\AI_MR_Sandbox\models\sdxl\stable-diffusion-xl-base-1.0` |
+| モデル参照 | `AI_MR_SDXL_MODEL_PATH` による明示指定 |
+| GUI回帰テスト | 66件PASS |
+| 設計方針 | GPU固有の構成に依存しない共通実装 |
+
+### 2. LoRA学習条件
+
+| 項目 | 内容 |
+|---|---|
+| 学習画像 | `training\smoke_test_a4500\image_01.png` |
+| 学習画像枚数 | 1枚 |
+| 識別子 | `aimrrobot01` |
+| 総学習ステップ | 1 |
+| LoRA Rank | 4 |
+| 解像度 | 512 × 512 |
+| 精度 | FP16 |
+| 学習率（ログ表示） | 0.0001 |
+| 最終Loss | 0.184 |
+| 実験出力先 | `lora_outputs\gui_e2e_20261110_01` |
+
+※ 相対パスは `AI_MR_Workspace` を基準とする。
+
+### 3. E2E機能検証
+
+- [x] GUIから学習条件を設定
+- [x] DreamBooth LoRA学習を開始
+- [x] 学習1ステップを完走
+- [x] 学習後、LoRAありの画像を生成
+- [x] LoRAなしの画像を生成
+- [x] LoRAあり／なしで視覚的な差異を確認
+- [ ] LoRA重みの保存先・ファイルサイズ・SHA256を記録
+- [ ] 生成ログ・学習ログ・結果JSON・manifestを確認
+- [ ] 同一生成条件でのLoRA有無の比較をログから確認
+
+**学習ログの注意事項：** CLIPTextModel関連のLoRAキーが見つからない警告が出たが、学習ステップは完走した。警告は今回の処理を停止させていない。
+
+### 4. 生成画像の観察
+
+**LoRAあり：** 黒色・黄色を基調とする円筒状の工業機器に近い画像が生成された。ロボットの頭部・腕・脚などの明確な形状は確認できなかった。
+
+**LoRAなし：** 異なる円筒状の構造物が生成された。
+
+**観察結果：** LoRAあり／なしで画像差異が認められた。ただし、その他の生成条件の一致はログで未確認であり、画像差異の原因をLoRAの効果だけに断定しない。
+
+**品質評価：** 1画像・1ステップの最小学習であり、対象形状の再現品質を評価する条件としては不十分。今回は機能疎通の検証と位置づける。
+
+### 5. 保存証跡（要補完）
+
+| 証跡 | 記録欄 |
+|---|---|
+| 学習済みLoRAの絶対パス | 未記録 |
+| LoRAファイルサイズ | 未記録 |
+| LoRA SHA256 | 未記録 |
+| 学習ログ | 未記録 |
+| manifest JSON | 未記録 |
+| LoRAあり画像の保存先 | 未記録 |
+| LoRAなし画像の保存先 | 未記録 |
+| 各生成条件・result JSON | 未記録 |
+| 生成PNGのSHA256 | 未記録 |
+
+チャット上で確認した生成画像のファイル名：
+
+- LoRAあり：`pytorch_lora_weights_seed42_20261110_161429_945836.png`
+- LoRAあり（再生成）：`pytorch_lora_weights_seed42_20261110_162608_117320_f55c65be21a14186.png`
+- LoRAなし：`pytorch_lora_weights_seed42_20261110_163830_857064_0507a6c63a7ad02c.png`
+
+※ ファイル名と実際のLoRA適用状態・生成条件との対応はresult JSONで照合する。
+
+### 6. 総合判定
+
+**第15段階：GUI経由のLoRA学習・生成E2Eは、操作・画像出力の実機確認まで成立。証跡記録は継続。**
+
+本検証では、GUIから学習を実行し、学習後のLoRAあり／なしの生成結果を確認できた。
+
+一方、対象形状の再現には至らず、学習品質を実証するものではない。
+
+### 7. 次の取り組み
+
+- [ ] 第15段階の未記録証跡を補完する。
+- [ ] 同一prompt・seed・steps・guidance・モデル条件でLoRA適用効果を比較する。
+- [ ] 第16段階として、複数画像・複数ステップによる形状学習実験を設計する。
+- [ ] 学習画像、共通・個別キャプション、学習条件、生成条件、評価基準を事前に定義する。
+- [ ] 検証結果をCH10.7および汎用環境構築手順書に反映する。

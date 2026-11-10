@@ -73,6 +73,10 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
             "設定ファイルに必須セクションがありません: " + ", ".join(missing)
         )
 
+    # An explicit model path is authoritative, including invalid/empty values.
+    if "AI_MR_SDXL_MODEL_PATH" in os.environ:
+        data["paths"]["model_snapshot_root"] = os.environ["AI_MR_SDXL_MODEL_PATH"]
+
     # Expand environment variables first so user paths remain portable between
     # Windows accounts. Project-local paths still move together with the GUI.
     project_local_keys = {
