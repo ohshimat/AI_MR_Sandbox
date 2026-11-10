@@ -10,9 +10,11 @@ from .captions import (
     list_caption_entries,
     save_image_caption,
 )
+from .file_access import checked_path, choose_folder, open_local, read_content
 from .config import save_user_settings
 from .dataset import inspect_dataset
-from .environment import inspect_environment
+from .environment import EnvironmentNotReadyError, inspect_environment, resolve_model_dir
+from .model_settings import save_user_model_path
 from .generation import GenerationRequest, GenerationService, LoraAdapter
 from .process_manager import JobBusyError, ProcessManager
 from .preview import cache_preview_image
@@ -474,34 +476,129 @@ class AppController:
             return []
         return [str(path.resolve()) for path in sorted(root.glob("**/*.safetensors"))]
 
+    def history_records(self) -> list[dict[str, Any]]:
+        """Shared, structured source for Markdown and selectable history."""
+        files = []
+        for root in self._history_roots():
+            try:
+                files.extend(list_record_files(root, limit=20))
+            except OSError:
+                continue
+        records = []
+        for path in set(files):
+            try:
+                path = checked_path(path, self._history_roots())
+                data = read_json(path)
+                if not isinstance(data, dict):
+                    continue
+                records.append({
+                    "datetime": data.get("finished_at") or data.get("generated_at") or data.get("started_at") or "",
+                    "operation": data.get("operation", "record"),
+                    "status": data.get("status", "unknown"),
+                    "path": str(path), "mtime": path.stat().st_mtime,
+                })
+            except (OSError, ValueError):
+                continue
+        return sorted(records, key=lambda row: row["mtime"], reverse=True)[:30]
+
+    def _history_roots(self):
+        roots = [self.config["paths"][key] for key in
+                 ("records_root", "lora_root", "generated_root")]
+        roots.extend(self.config.get("ui_defaults", {}).get(key) for key in
+                     ("training_output_dir", "generation_output_dir"))
+        return [root for root in roots if root]
+
     def history_markdown(self) -> str:
-        roots = [
-            self.config["paths"]["records_root"],
-            self.config["paths"]["lora_root"],
-            self.config["paths"]["generated_root"],
-        ]
-        files: list[Path] = []
-        for root in roots:
-            files.extend(list_record_files(root, limit=20))
-        unique = sorted(
-            {path.resolve(): path for path in files}.values(),
-            key=lambda path: path.stat().st_mtime,
-            reverse=True,
-        )[:30]
-        if not unique:
+        rows = self.history_records()
+        if not rows:
             return "### 実行履歴\n\nまだGUIの実行記録はありません。"
         lines = ["### 実行履歴", ""]
-        for path in unique:
-            try:
-                data = read_json(path)
-                status = data.get("status", "unknown")
-                operation = data.get("operation", "record")
-                when = data.get("finished_at") or data.get("generated_at") or ""
-                lines.append(f"- **{operation} / {status}** {when}  ")
-                lines.append(f"  `{path}`")
-            except (OSError, json.JSONDecodeError):
-                continue
+        for row in rows:
+            lines.extend([f"- **{row['operation']} / {row['status']}** {row['datetime']}  ",
+                          f"  `{row['path']}`"])
         return "\n".join(lines)
+
+    def browse_model_folder(self, current):
+        try:
+            selected = choose_folder(current)
+            if selected == current:
+                return current, "変更はありません。"
+            return selected, "選択しました。「モデル設定を保存・適用」を押してください。"
+        except Exception as error:
+            return current, f"モデルフォルダーを選択できません: {error}"
+
+    def apply_model_folder(self, value):
+        previous = self.config["paths"]["model_snapshot_root"]
+        try:
+            self._require_idle_for_storage()
+            if not str(value or "").strip():
+                raise ValueError("SDXLモデルフォルダーを指定してください。")
+            model = resolve_model_dir(str(value).strip())
+            if model is None:
+                raise ValueError("指定フォルダー直下またはrevision内にmodel_index.jsonがありません。保存・適用していません。")
+            normalized = str(model.resolve(strict=True))
+            notified = save_user_model_path(normalized)
+            self.config["paths"]["model_snapshot_root"] = normalized
+            message = ("保存・適用しました。Windowsのユーザー環境変数 AI_MR_SDXL_MODEL_PATH と"
+                       "現在のGUIの学習・生成設定を更新しました。")
+            if not notified:
+                message += " Windowsへの変更通知に失敗しましたが、保存は完了しています。"
+            message += " 起動済み端末からの再起動では古い環境変数を引き継ぐため、端末を開き直してください。"
+            return normalized, message
+        except (OSError, ValueError, TypeError) as error:
+            return value, f"モデル設定を変更できません: {error}（適用中: {previous}）"
+
+    def browse_folder(self, current, setting):
+        try:
+            selected = choose_folder(current)
+            if selected != current:
+                self._save_settings(**{setting: selected})
+                self.config["ui_defaults"][setting] = selected
+            return selected, "フォルダー選択完了（キャンセル時は変更なし）。"
+        except Exception as error:
+            return current, f"フォルダーを選択できません: {error}"
+
+    def history_files(self, record):
+        if record not in {row["path"] for row in self.history_records()}:
+            raise ValueError("履歴に登録されていない記録です。")
+        path = checked_path(record, self._history_roots())
+        data = read_json(path)
+        values = [str(path)]
+        for key in ("image", "sidecar_json", "output_lora", "log_path", "lora"):
+            if isinstance(data.get(key), str) and data[key]:
+                values.append(data[key])
+        for item in data.get("loras", []):
+            if isinstance(item, dict) and isinstance(item.get("path"), str):
+                values.append(item["path"])
+        result = []
+        for value in values:
+            try:
+                candidate = Path(value)
+                if not candidate.is_absolute():
+                    candidate = path.parent / candidate
+                target = checked_path(candidate, self._history_roots())
+                if str(target) not in result:
+                    result.append(str(target))
+            except (OSError, ValueError):
+                continue
+        return result
+
+    def history_file_action(self, record, target, action):
+        try:
+            if target not in self.history_files(record):
+                raise ValueError("選択記録の許可された参照先ではありません。")
+            path = checked_path(target, self._history_roots())
+            if action == "folder":
+                open_local(path, folder=True)
+                return "保存フォルダーを開きました。", None
+            if action == "open" and path.suffix.lower() != ".safetensors":
+                open_local(path)
+                return "ファイルを開きました。", None
+            if path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
+                return str(path), str(cache_preview_image(path, self.config["paths"]["preview_cache"]))
+            return read_content(path), None
+        except (OSError, ValueError, TypeError) as error:
+            return f"ファイルへアクセスできません: {error}", None
 
     def _save_settings(self, **changes: Any) -> None:
         allowed = set(self.config.get("ui_defaults", {}))
@@ -514,6 +611,7 @@ class AppController:
                 current = {}
         current.update({key: value for key, value in changes.items() if key in allowed})
         save_user_settings(self.config, current)
+        self.config.setdefault("ui_defaults", {}).update(current)
 
     def _require_idle_for_storage(self) -> None:
         snapshot = self.jobs.snapshot()
@@ -608,6 +706,8 @@ class AppController:
 
     @staticmethod
     def _error_markdown(summary: str, error: Exception) -> str:
+        if isinstance(error, EnvironmentNotReadyError):
+            return f"## ❌ {summary}\n\n" + error.to_markdown()
         return (
             f"## ❌ {summary}\n\n"
             f"確認：入力したパスと値を見直してください。  \n"

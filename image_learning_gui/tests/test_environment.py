@@ -79,9 +79,9 @@ class ModelPathTests(unittest.TestCase):
                     self.assertFalse(report.path_status["SDXLモデルパス"])
                     self.assertIn(repr(value), report.to_markdown())
 
-    def test_unset_override_preserves_legacy_config(self):
+    def test_unset_override_uses_default_model_folder(self):
         with patch.dict(os.environ):
             os.environ.pop("AI_MR_SDXL_MODEL_PATH", None)
             os.environ["AI_MR_COMMON_ROOT"] = str(Path(tempfile.gettempdir()) / "common")
             config = load_config()
-            self.assertEqual(Path(config["paths"]["model_snapshot_root"]), Path(os.environ["AI_MR_COMMON_ROOT"]) / "models" / "huggingface" / "models--stabilityai--stable-diffusion-xl-base-1.0" / "snapshots")
+            self.assertEqual(Path(config["paths"]["model_snapshot_root"]), Path(os.environ["AI_MR_COMMON_ROOT"]) / "models" / "sdxl" / "stable-diffusion-xl-base-1.0")

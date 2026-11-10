@@ -100,6 +100,14 @@ def create_caption_select_handler(controller, select_data_type):
     return on_caption_image_select
 
 
+def create_training_start_handler(controller):
+    """Keep start validation feedback separate from the periodic job status."""
+    def start_training(*args):
+        status_text, log_text = controller.start_training(*args)
+        return status_text, log_text, status_text
+    return start_training
+
+
 def build_app():
     try:
         import gradio as gr
@@ -131,6 +139,31 @@ def build_app():
             plan,
         )
 
+    def folder_input(key, **kwargs):
+        with gr.Row():
+            field = gr.Textbox(**kwargs)
+            button = gr.Button("参照", scale=0)
+        message = gr.Textbox(label="フォルダー選択の結果", interactive=False, lines=1)
+        def browse(current):
+            return controller.browse_folder(current, key)
+        button.click(browse, inputs=[field], outputs=[field, message],
+                     api_visibility="private", concurrency_id="folder_dialog", concurrency_limit=1)
+        return field
+
+    def history_choices():
+        return [(f"{r['datetime']} | {r['operation']} | {r['status']} | {r['path']}", r['path'])
+                for r in controller.history_records()]
+
+    def refresh_history():
+        return controller.history_markdown(), gr.update(choices=history_choices(), value=None), gr.update(choices=[], value=None), "", None
+
+    def select_record(record):
+        try:
+            choices = controller.history_files(record)
+            return gr.update(choices=choices, value=choices[0] if choices else None), "", None
+        except (OSError, ValueError, TypeError) as error:
+            return gr.update(choices=[], value=None), str(error), None
+
     with gr.Blocks(
         title=config["app"]["title"],
         analytics_enabled=bool(config["app"].get("analytics_enabled", False)),
@@ -148,12 +181,31 @@ def build_app():
             elem_classes="status-card",
         )
 
+        with gr.Accordion("SDXL Baseモデル設定（学習・生成共通）", open=True):
+            gr.Markdown(
+                "既定のモデルフォルダーを表示しています。場所が違う場合は直接入力または「参照」で選び、"
+                "「モデル設定を保存・適用」を押してください。Windowsのユーザー環境変数"
+                " `AI_MR_SDXL_MODEL_PATH` に保存し、現在のGUIにも即時反映します。"
+                "ローカルWindows専用です。学習・生成の実行中は変更できません。"
+            )
+            with gr.Row():
+                model_folder = gr.Textbox(label="SDXL Baseモデルフォルダー", value=config["paths"]["model_snapshot_root"], lines=1)
+                browse_model_button = gr.Button("参照", scale=0)
+            apply_model_button = gr.Button("モデル設定を保存・適用")
+            model_setting_result = gr.Textbox(label="モデル設定の結果", interactive=False)
+            browse_model_button.click(controller.browse_model_folder, inputs=[model_folder],
+                                      outputs=[model_folder, model_setting_result], api_visibility="private",
+                                      concurrency_id="folder_dialog", concurrency_limit=1)
+            apply_model_button.click(controller.apply_model_folder, inputs=[model_folder],
+                                     outputs=[model_folder, model_setting_result], api_visibility="private",
+                                     concurrency_id="gpu_job", concurrency_limit=1)
+
         with gr.Tab("学習"):
             gr.Markdown(
                 "学習画像を検査し、SDXL Baseから新しいLoRAを作るか、"
                 "既存のcheckpointから継続します。"
             )
-            training_image_dir = gr.Textbox(
+            training_image_dir = folder_input("training_image_dir",
                 label="学習画像フォルダ",
                 value=ui["training_image_dir"],
                 lines=1,
@@ -214,15 +266,28 @@ def build_app():
                     "ない画像には共通プロンプトを適用します。"
                 ),
             )
+            training_prompt = gr.Textbox(
+                label="共通／識別用学習プロンプト",
+                value=ui["training_prompt"],
+                lines=1,
+                info=(
+                    "固定方式では全画像に使用します。画像別方式でも、トリガー識別と成果物名のため入力します。"
+                ),
+            )
             training_mode = gr.Radio(
                 ["新規学習", "checkpointから継続"],
                 value="新規学習",
                 label="学習モード",
             )
-            training_output_dir = gr.Textbox(
+            training_output_dir = folder_input("training_output_dir",
                 label="学習結果フォルダ",
                 value=ui["training_output_dir"],
                 lines=1,
+            )
+            gr.Markdown(
+                "新規学習には空のフォルダー、または未作成の新しいパスを指定してください。"
+                "以前の学習結果は上書きしません。既存の学習を続ける場合は"
+                "「checkpointから継続」を選び、「checkpointを確認」してください。"
             )
             checkpoint_report = gr.Markdown("継続学習ではcheckpointを確認してください。")
             resume_checkpoint = gr.Dropdown(
@@ -258,19 +323,12 @@ def build_app():
             training_plan_report = gr.Markdown(
                 "画像を検査すると、画像数と学習回数から目標ステップを計算します。"
             )
-            training_prompt = gr.Textbox(
-                label="共通／識別用学習プロンプト",
-                value=ui["training_prompt"],
-                lines=1,
-                info=(
-                    "固定方式では全画像に使用します。画像別方式でも、トリガー識別と成果物名のため入力します。"
-                ),
-            )
             with gr.Accordion("固定学習条件", open=False):
                 gr.JSON(value=training, label="GUIから変更しない設定")
             with gr.Row():
                 train_button = gr.Button("学習開始", variant="primary")
                 stop_training_button = gr.Button("実行中の処理を停止", variant="stop")
+            training_start_result = gr.Markdown("")
             training_log = gr.Textbox(
                 label="学習・生成ログ",
                 value="",
@@ -361,7 +419,7 @@ def build_app():
             gr.Markdown(
                 "横幅・縦幅は8の倍数で指定します。大きくすると処理時間とGPUメモリ使用量が増えます。"
             )
-            generation_output_dir = gr.Textbox(
+            generation_output_dir = folder_input("generation_output_dir",
                 label="画像生成フォルダ",
                 value=ui["generation_output_dir"],
                 lines=1,
@@ -399,7 +457,7 @@ def build_app():
                     "学習タブの画像フォルダと学習結果フォルダ、画像生成タブの生成フォルダを"
                     "一つの検証可能な実験データとして保存します。"
                 )
-                external_storage_root = gr.Textbox(
+                external_storage_root = folder_input("external_storage_root",
                     label="外部ストレージの保存先ルート",
                     value=ui["external_storage_root"],
                     placeholder="例：E:\\AI_MR_Archive",
@@ -419,7 +477,7 @@ def build_app():
                 )
 
             with gr.Accordion("保存データを検査・PCへ復元", open=True):
-                archive_path = gr.Textbox(
+                archive_path = folder_input("archive_path",
                     label="保存済み実験フォルダ",
                     value=ui["archive_path"],
                     placeholder=(
@@ -428,7 +486,7 @@ def build_app():
                     ),
                     lines=1,
                 )
-                restore_pc_root = gr.Textbox(
+                restore_pc_root = folder_input("restore_pc_root",
                     label="PC側の復元先ルート",
                     value=ui["restore_pc_root"],
                     lines=1,
@@ -450,6 +508,26 @@ def build_app():
                 refresh_history_button = gr.Button("履歴を更新")
             environment_report = gr.Markdown(controller.environment_markdown())
             history_report = gr.Markdown(controller.history_markdown())
+            gr.Markdown("参照・ファイルを開く・保存フォルダーを開く操作はローカルWindows専用です。"
+                        "参照は既存フォルダーを選択します。新しい出力先は直接入力できます。"
+                        "safetensorsは重みを読み込まずヘッダーメタデータのみ表示します。"
+                        "許可ルート外・削除済みの参照先は表示しません。")
+            history_record = gr.Dropdown(choices=history_choices(), label="実験記録（日時 | 操作 | 状態 | 記録パス）", interactive=True)
+            history_target = gr.Dropdown(choices=[], label="記録／参照ファイル", interactive=True)
+            with gr.Row():
+                view_record_button = gr.Button("内容を表示")
+                open_record_button = gr.Button("ファイルを開く")
+                open_folder_button = gr.Button("保存フォルダーを開く")
+            history_content = gr.Textbox(label="記録内容／操作結果", lines=16, interactive=False)
+            history_preview = gr.Image(label="記録画像プレビュー", interactive=False)
+            history_record.change(select_record, inputs=[history_record],
+                                  outputs=[history_target, history_content, history_preview], api_visibility="private")
+            history_target.change(lambda: ("", None), outputs=[history_content, history_preview], api_visibility="private")
+            for button, action in [(view_record_button, "view"), (open_record_button, "open"), (open_folder_button, "folder")]:
+                def perform(record, target, action=action):
+                    return controller.history_file_action(record, target, action)
+                button.click(perform, inputs=[history_record, history_target],
+                             outputs=[history_content, history_preview], api_visibility="private")
 
         def refresh_lora_dropdowns():
             choices = controller.lora_choices()
@@ -597,7 +675,7 @@ def build_app():
             api_visibility="private",
         )
         train_button.click(
-            controller.start_training,
+            create_training_start_handler(controller),
             inputs=[
                 training_image_dir,
                 training_mode,
@@ -607,7 +685,7 @@ def build_app():
                 training_prompt,
                 training_caption_mode,
             ],
-            outputs=[status, training_log],
+            outputs=[status, training_log, training_start_result],
             api_visibility="private",
             concurrency_limit=1,
             concurrency_id="gpu_job",
@@ -697,8 +775,8 @@ def build_app():
             api_visibility="private",
         )
         refresh_history_button.click(
-            controller.history_markdown,
-            outputs=[history_report],
+            refresh_history,
+            outputs=[history_report, history_record, history_target, history_content, history_preview],
             api_visibility="private",
         )
 
@@ -724,9 +802,9 @@ def build_app():
 def main() -> None:
     demo, config = build_app()
     demo.queue(default_concurrency_limit=2).launch(
-        server_name=config["app"]["server_name"],
+        server_name="127.0.0.1",
         server_port=int(config["app"]["server_port"]),
-        share=bool(config["app"]["share"]),
+        share=False,
         inbrowser=True,
         show_error=True,
         css=APP_CSS,

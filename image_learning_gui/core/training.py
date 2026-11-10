@@ -11,7 +11,7 @@ from typing import Any
 
 from .dataset import DatasetReport, inspect_dataset
 from .captions import list_caption_entries
-from .environment import inspect_environment, resolve_model_dir
+from .environment import EnvironmentNotReadyError, inspect_environment, resolve_model_dir
 from .process_manager import JobSnapshot, ProcessManager
 from .records import iso_now, sha256_file, timestamp_id, write_json_atomic
 
@@ -285,7 +285,7 @@ class TrainingService:
         report, output, checkpoint_step = validate_training_request(request, self.config)
         environment_report = inspect_environment(self.config)
         if not environment_report.ready:
-            raise ValueError("実行環境が準備できていません。環境・履歴タブを確認してください。")
+            raise EnvironmentNotReadyError(environment_report, self.config)
         if (
             environment_report.nvidia_used_mib is not None
             and environment_report.nvidia_used_mib > 1024

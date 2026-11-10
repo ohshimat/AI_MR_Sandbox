@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+from .model_settings import MODEL_ENVIRONMENT_VARIABLE, read_user_model_path
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "defaults.yaml"
@@ -74,8 +76,11 @@ def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
         )
 
     # An explicit model path is authoritative, including invalid/empty values.
-    if "AI_MR_SDXL_MODEL_PATH" in os.environ:
-        data["paths"]["model_snapshot_root"] = os.environ["AI_MR_SDXL_MODEL_PATH"]
+    model_override = os.environ.get(MODEL_ENVIRONMENT_VARIABLE)
+    if model_override is None:
+        model_override = read_user_model_path()
+    if model_override is not None:
+        data["paths"]["model_snapshot_root"] = model_override
 
     # Expand environment variables first so user paths remain portable between
     # Windows accounts. Project-local paths still move together with the GUI.

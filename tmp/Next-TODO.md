@@ -126,7 +126,7 @@ $src='.\tmp\experience.jsonl'; $dst='C:\Users\vruser_1\AI_MR_Workspace\evidence\
 | 学習画像枚数 | 1枚 |
 | 識別子 | `aimrrobot01` |
 | 総学習ステップ | 1 |
-| LoRA Rank | 4 |
+| LoRA Rank | 8（manifest確定） |
 | 解像度 | 512 × 512 |
 | 精度 | FP16 |
 | 学習率（ログ表示） | 0.0001 |
@@ -143,7 +143,7 @@ $src='.\tmp\experience.jsonl'; $dst='C:\Users\vruser_1\AI_MR_Workspace\evidence\
 - [x] 学習後、LoRAありの画像を生成
 - [x] LoRAなしの画像を生成
 - [x] LoRAあり／なしで視覚的な差異を確認
-- [ ] LoRA重みの保存先・ファイルサイズ・SHA256を記録
+- [x] LoRA重みの保存先・ファイルサイズ・SHA256を記録
 - [ ] 生成ログ・学習ログ・結果JSON・manifestを確認
 - [ ] 同一生成条件でのLoRA有無の比較をログから確認
 
@@ -159,7 +159,7 @@ $src='.\tmp\experience.jsonl'; $dst='C:\Users\vruser_1\AI_MR_Workspace\evidence\
 
 **品質評価：** 1画像・1ステップの最小学習であり、対象形状の再現品質を評価する条件としては不十分。今回は機能疎通の検証と位置づける。
 
-### 5. 保存証跡（要補完）
+### 5. 保存証跡（初期記録・確定値は第8節を参照）
 
 | 証跡 | 記録欄 |
 |---|---|
@@ -183,7 +183,7 @@ $src='.\tmp\experience.jsonl'; $dst='C:\Users\vruser_1\AI_MR_Workspace\evidence\
 
 ### 6. 総合判定
 
-**第15段階：GUI経由のLoRA学習・生成E2Eは、操作・画像出力の実機確認まで成立。証跡記録は継続。**
+**第15段階：GUI経由のLoRA学習・保存・再読込・画像生成E2EはPASS。学習・生成のSHA256整合性を確認済み。品質評価は未完了。**
 
 本検証では、GUIから学習を実行し、学習後のLoRAあり／なしの生成結果を確認できた。
 

@@ -45,7 +45,11 @@ class ConfigurationTests(unittest.TestCase):
             "AI_MR_IMAGE_ACCELERATE": r"X:\Python\accelerate.exe",
             "AI_MR_TRAINING_PACKAGES": r"X:\Runtime\training",
         }
-        with patch.dict(os.environ, overrides, clear=False):
+        with (
+            patch.dict(os.environ, overrides, clear=False),
+            patch("core.config.read_user_model_path", return_value=None),
+        ):
+            os.environ.pop("AI_MR_SDXL_MODEL_PATH", None)
             config = load_config()
 
         self.assertEqual(
@@ -53,7 +57,7 @@ class ConfigurationTests(unittest.TestCase):
         )
         self.assertEqual(
             config["paths"]["model_snapshot_root"],
-            r"X:\AI_MR_Common\models\huggingface\models--stabilityai--stable-diffusion-xl-base-1.0\snapshots",
+            r"X:\AI_MR_Common\models\sdxl\stable-diffusion-xl-base-1.0",
         )
         self.assertEqual(
             config["paths"]["training_packages"],

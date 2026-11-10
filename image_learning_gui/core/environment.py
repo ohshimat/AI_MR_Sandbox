@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import html
 import os
 import shutil
 import subprocess
@@ -76,6 +77,50 @@ class EnvironmentReport:
         if self.errors:
             lines.extend(["", "#### 確認事項"])
             lines.extend(f"- {error}" for error in self.errors)
+        return "\n".join(lines)
+
+
+class EnvironmentNotReadyError(ValueError):
+    """Carry the original environment diagnosis to the start-result panel."""
+
+    def __init__(self, report: EnvironmentReport, config: dict[str, Any]):
+        self.report = report
+        self.paths = dict(config["paths"])
+        issues = []
+        if not report.cuda_available:
+            issues.append("学習用PythonでCUDAを利用できません")
+        issues.extend(f"{name}が見つかりません" for name, exists in report.path_status.items() if not exists)
+        if report.model_dir is None and report.path_status.get("SDXLモデルパス") is not False:
+            issues.append("SDXLモデルが見つかりません")
+        super().__init__("。".join(issues) or "環境チェックが完了していません")
+
+    def to_markdown(self) -> str:
+        def code(value):
+            return "<code>" + html.escape(str(value)) + "</code>"
+        lines = ["学習プロセスはまだ起動していません。次の項目を修正して再度「学習開始」を押してください。", ""]
+        mapping = {
+            "Python": ("python_executable", "AI_MR_IMAGE_PYTHONを実在する学習用python.exeに設定してください。"),
+            "Accelerate": ("accelerate_executable", "AI_MR_IMAGE_ACCELERATEを実在するaccelerate.exeに設定してください。"),
+            "DreamBooth学習スクリプト": ("training_script", "学習スクリプトの配置とconfig/defaults.yamlのtraining_scriptを確認してください。"),
+            "SDXLモデルパス": ("model_snapshot_root", "画面上部のSDXL Baseモデル設定でmodel_index.jsonのあるフォルダーを指定し、「モデル設定を保存・適用」を押してください（AI_MR_SDXL_MODEL_PATHへ保存）。"),
+        }
+        failed = [name for name, exists in self.report.path_status.items() if not exists]
+        if self.report.model_dir is None and "SDXLモデルパス" not in failed:
+            failed.append("SDXLモデルパス")
+        for name in failed:
+            key, action = mapping.get(name, (name, "設定パスの存在とアクセス権を確認してください。"))
+            lines.extend([f"- ❌ {html.escape(name)}が見つかりません。",
+                          f"  - 設定パス：{code(self.paths.get(key, '未設定'))}",
+                          f"  - 対処：{action}"])
+        if not self.report.cuda_available:
+            lines.extend(["- ❌ 学習用PythonでCUDAを利用できません。",
+                          f"  - 確認対象：{code(self.report.python_executable)}",
+                          f"  - PyTorch：{code(self.report.packages.get('torch', '取得不可'))} / CUDA Runtime：{code(self.report.cuda_runtime or '取得不可')}",
+                          "  - 対処：学習用環境のPyTorch導入状態、CUDA対応版かどうか、GPUドライバーを確認してください。"])
+        if self.report.errors:
+            lines.extend(["", "環境チェックの詳細：", ""])
+            lines.extend(f"- {code(error)}" for error in self.report.errors)
+        lines.extend(["", "モデルパスは画面上部から変更できます。詳細な一覧は「環境・履歴」でも確認できます。"])
         return "\n".join(lines)
 
 
@@ -226,6 +271,8 @@ def inspect_environment(config: dict[str, Any]) -> EnvironmentReport:
     nvidia_used, nvidia_total, nvidia_name = _nvidia_memory()
     cuda_available = bool(python_details.get("cuda_available"))
     gpu_name = python_details.get("gpu_name") or nvidia_name
+    if python_details.get("torch_error"):
+        errors.append(f"PyTorchの読み込みエラー: {python_details['torch_error']}")
     if not cuda_available:
         errors.append("CUDA GPUを利用できません。")
     if model_dir is None:

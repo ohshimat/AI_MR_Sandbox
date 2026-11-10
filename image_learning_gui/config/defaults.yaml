@@ -15,7 +15,7 @@ paths:
   preview_cache: "%AI_MR_COMMON_ROOT%\\temp\\preview"
   training_packages: "%AI_MR_TRAINING_PACKAGES%"
   datasets_cache: "%AI_MR_COMMON_ROOT%\\temp\\datasets"
-  model_snapshot_root: "%AI_MR_COMMON_ROOT%\\models\\huggingface\\models--stabilityai--stable-diffusion-xl-base-1.0\\snapshots"
+  model_snapshot_root: "%AI_MR_COMMON_ROOT%\\models\\sdxl\\stable-diffusion-xl-base-1.0"
   workspace_root: "%AI_MR_WORKSPACE%"
   lora_root: "%AI_MR_WORKSPACE%\\lora_outputs"
   generated_root: "%AI_MR_WORKSPACE%\\generated"
