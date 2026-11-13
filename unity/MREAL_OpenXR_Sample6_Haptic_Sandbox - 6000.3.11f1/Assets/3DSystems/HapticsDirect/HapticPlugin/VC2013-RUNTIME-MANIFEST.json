@@ -1,0 +1,28 @@
+{
+  "package": "Microsoft Visual C++ 2013 Update 5 Redistributable (x64)",
+  "installerVersion": "12.0.40664.0",
+  "source": "https://aka.ms/highdpimfc2013x64jpn",
+  "sourceDocumentation": "https://support.microsoft.com/en-us/servicing/visual-studio/update/2020/11/update-for-visual-c-2013-redistributable-package",
+  "redistributionTerms": "https://learn.microsoft.com/en-us/visualstudio/releases/2013/2013-redistribution-vs",
+  "files": [
+    {
+      "file": "msvcr120.dll",
+      "architecture": "x86_64",
+      "version": "12.00.40664.0 built by: VSULDR",
+      "sha256": "753AC30C30AAE62415CC225E3D057B8B6254AFE280696E0A43F1A7C3132632A6",
+      "publisher": "CN=Microsoft Corporation, OU=MOPR, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    },
+    {
+      "file": "msvcp120.dll",
+      "architecture": "x86_64",
+      "version": "12.00.40664.0 built by: VSULDR",
+      "sha256": "3B92E964404E3F94531E7D7C4C7419561D9ECA6ACCD98DC3979C9E3596DB444C",
+      "publisher": "CN=Microsoft Corporation, OU=MOPR, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+    }
+  ],
+  "unresolved": [
+    "VC++ 14 runtime and Windows OS libraries remain prerequisites.",
+    "Clean-machine and Windows Player build validation remain incomplete.",
+    "Physical device operation and vendor redistribution rights are not validated."
+  ]
+}

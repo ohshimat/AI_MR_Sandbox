@@ -1,0 +1,42 @@
+{
+  "file": "PhantomIoLib42.dll",
+  "version": "2023.10.11.1213",
+  "architecture": "x86_64",
+  "sha256": "B09964DB545DC9974FB461A694918D3CD8EAA9F96E8F3E7B834C56D5D739121A",
+  "sourcePackage": "Touch_Device_Driver_2023.10.11.exe",
+  "sourceUrl": "https://s3.amazonaws.com/dl.3dsystems.com/binaries/Sensable/driver/Touch_Device_Driver_2023.10.11.exe",
+  "sourcePage": "https://www.ddd.co.jp/support/haptics-driver/",
+  "packageSha256": "994075D632948D371562F0658F0E24F86EEE48340DAD4C5B15C603708A11048B",
+  "packageSignature": "Valid; 3D SYSTEMS, INC.",
+  "dllSignature": "NotSigned; extracted unchanged from the signed vendor package",
+  "requiredHdExports": 76,
+  "missingHdExports": [],
+  "driverInstalled": false,
+  "redistribution": "Local project use only; no external redistribution rights have been established by this validation.",
+  "limitations": [
+    "Physical device operation is not validated.",
+    "VC++ 14 runtime and Windows system libraries are still required.",
+    "Clean-machine and Windows Player validation are not yet complete."
+  ],
+  "originalImporterMetadata": {
+    "HapticsDirect.dll.meta": "fileFormatVersion: 2\nguid: 2bc28c7f4ed76174b8e837a62fe6a0d3\nPluginImporter:\n  externalObjects: {}\n  serializedVersion: 2\n  iconMap: {}\n  executionOrder: {}\n  defineConstraints: []\n  isPreloaded: 1\n  isOverridable: 0\n  isExplicitlyReferenced: 0\n  validateReferences: 1\n  platformData:\n  - first:\n      : Any\n    second:\n      enabled: 0\n      settings:\n        Exclude Android: 0\n        Exclude Editor: 1\n        Exclude Linux64: 1\n        Exclude OSXUniversal: 1\n        Exclude WebGL: 0\n        Exclude Win: 1\n        Exclude Win64: 1\n  - first:\n      Android: Android\n    second:\n      enabled: 1\n      settings:\n        AndroidSharedLibraryType: Executable\n        CPU: ARMv7\n  - first:\n      Any: \n    second:\n      enabled: 1\n      settings: {}\n  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n      settings:\n        CPU: AnyCPU\n        DefaultValueInitialized: true\n        OS: AnyOS\n  - first:\n      Standalone: Linux64\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: OSXUniversal\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: Win\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: Win64\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      WebGL: WebGL\n    second:\n      enabled: 1\n      settings: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n",
+    "hd.dll.meta": "fileFormatVersion: 2\nguid: 4c55b50091b6b4444bf98a310c4b3053\nPluginImporter:\n  externalObjects: {}\n  serializedVersion: 2\n  iconMap: {}\n  executionOrder: {}\n  defineConstraints: []\n  isPreloaded: 1\n  isOverridable: 0\n  isExplicitlyReferenced: 0\n  validateReferences: 1\n  platformData:\n  - first:\n      : Any\n    second:\n      enabled: 0\n      settings:\n        Exclude Android: 0\n        Exclude Editor: 1\n        Exclude Linux64: 1\n        Exclude OSXUniversal: 1\n        Exclude WebGL: 0\n        Exclude Win: 1\n        Exclude Win64: 1\n  - first:\n      Android: Android\n    second:\n      enabled: 1\n      settings:\n        AndroidSharedLibraryType: Executable\n        CPU: ARMv7\n  - first:\n      Any: \n    second:\n      enabled: 1\n      settings: {}\n  - first:\n      Editor: Editor\n    second:\n      enabled: 0\n      settings:\n        CPU: AnyCPU\n        DefaultValueInitialized: true\n        OS: AnyOS\n  - first:\n      Standalone: Linux64\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: OSXUniversal\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: Win\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      Standalone: Win64\n    second:\n      enabled: 0\n      settings:\n        CPU: None\n  - first:\n      WebGL: WebGL\n    second:\n      enabled: 1\n      settings: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n"
+  },
+  "validation": {
+    "unityVersion": "6000.3.11f1",
+    "noHardwarePlayAndStop": "Passed; no Haptic exceptions; TouchActor active",
+    "projectLocalModules": [
+      "HapticsDirect.dll",
+      "hd.dll",
+      "PhantomIoLib42.dll",
+      "MSVCP120.dll",
+      "MSVCR120.dll"
+    ],
+    "systemModules": [
+      "MSVCP140.dll",
+      "VCRUNTIME140.dll"
+    ],
+    "consoleSession": "9cf5eaf76c484c619196666834a7d031",
+    "consoleSequenceRange": "43-49"
+  }
+}
