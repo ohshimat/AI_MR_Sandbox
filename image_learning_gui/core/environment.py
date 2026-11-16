@@ -45,6 +45,25 @@ class EnvironmentReport:
             and all(self.path_status.values())
         )
 
+    @property
+    def nvidia_free_mib(self) -> int | None:
+        total, used = self.nvidia_total_mib, self.nvidia_used_mib
+        if total is None or used is None or total < 0 or used < 0 or used > total:
+            return None
+        return total - used
+
+    def vram_markdown(self) -> str:
+        def amount(value):
+            return f"{value} MiB" if value is not None else "取得不可"
+        return (
+            "### VRAM診断（事前検査時点）\n\n"
+            f"- 総容量：{amount(self.nvidia_total_mib)}\n"
+            f"- 使用量：{amount(self.nvidia_used_mib)}\n"
+            f"- 空き容量：{amount(self.nvidia_free_mib)}\n\n"
+            "VRAM情報は参考値です。取得できない場合も、それだけでは学習を拒否しません。"
+            "必要量は学習条件によって変わるため、空き容量だけで学習可能とは保証できません。"
+        )
+
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
@@ -58,7 +77,6 @@ class EnvironmentReport:
             f"- CUDA利用可能：{self.cuda_available}",
             f"- CUDA Runtime：{self.cuda_runtime or '取得不可'}",
             f"- GPU：{self.gpu_name or '取得不可'}",
-            f"- NVIDIA VRAM：{self.nvidia_used_mib if self.nvidia_used_mib is not None else '?'} / {self.nvidia_total_mib if self.nvidia_total_mib is not None else '?'} MiB",
             f"- SDXL Base：`{self.model_dir or '見つかりません'}`",
             "",
             "#### パッケージ",
@@ -74,6 +92,7 @@ class EnvironmentReport:
             f"- {drive}：{free:.1f} GiB" if free is not None else f"- {drive}：取得不可"
             for drive, free in self.disk_free_gib.items()
         )
+        lines.extend(["", self.vram_markdown()])
         if self.errors:
             lines.extend(["", "#### 確認事項"])
             lines.extend(f"- {error}" for error in self.errors)

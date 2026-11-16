@@ -295,7 +295,10 @@ class AppController:
                 additional_steps=int(additional_steps),
                 target_steps=int(target_steps),
             )
-            return self._status_markdown(snapshot), snapshot.log_tail
+            status_text = self._status_markdown(snapshot)
+            if self.training.last_environment_report is not None:
+                status_text += "\n\n" + self.training.last_environment_report.vram_markdown()
+            return status_text, snapshot.log_tail
         except (TypeError, ValueError, OSError, JobBusyError) as error:
             return self._error_markdown("学習を開始できません。", error), self.jobs.snapshot().log_tail
 
@@ -702,6 +705,7 @@ class AppController:
             f"状態：`{snapshot.state}`  \n"
             f"処理：`{snapshot.operation or 'なし'}`  \n"
             f"Job ID：`{snapshot.job_id or 'なし'}`"
+            + (f"  \n保存ログ：`{snapshot.log_path}`" if snapshot.state == "failed" and snapshot.log_path else "")
         )
 
     @staticmethod

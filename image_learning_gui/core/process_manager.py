@@ -121,12 +121,19 @@ class ProcessManager:
         assert self._process is not None
         process = self._process
         log_path = self._log_path
+        cuda_oom = False
         try:
             assert process.stdout is not None
             assert log_path is not None
-            with log_path.open("a", encoding="utf-8") as log_file:
+            with process.stdout, log_path.open("a", encoding="utf-8") as log_file:
                 for line in process.stdout:
                     clean = line.rstrip("\r\n")
+                    lowered = clean.casefold()
+                    if any(marker in lowered for marker in (
+                        "cuda out of memory", "cuda error: out of memory",
+                        "torch.cuda.outofmemoryerror",
+                    )):
+                        cuda_oom = True
                     with self._lock:
                         self._lines.append(clean)
                     log_file.write(line)
@@ -143,9 +150,17 @@ class ProcessManager:
                     self._message = f"{self._operation}が完了しました。"
                 else:
                     self._state = "failed"
-                    self._message = (
-                        f"{self._operation}が終了コード{return_code}で失敗しました。"
-                    )
+                    if cuda_oom:
+                        self._message = (
+                            f"{self._operation}がCUDA Out of Memoryで失敗しました。"
+                            "GPUメモリを確保できませんでした。GPUを使用する他のアプリを終了する、"
+                            "解像度やバッチサイズを下げるなど、設定を見直して再試行してください。"
+                            "空き容量だけでは成功を保証できません。詳細は保存ログを確認してください。"
+                        )
+                    else:
+                        self._message = (
+                            f"{self._operation}が終了コード{return_code}で失敗しました。"
+                        )
         except Exception as error:
             with self._lock:
                 self._state = "failed"

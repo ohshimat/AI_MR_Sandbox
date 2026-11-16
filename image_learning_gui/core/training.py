@@ -11,7 +11,7 @@ from typing import Any
 
 from .dataset import DatasetReport, inspect_dataset
 from .captions import list_caption_entries
-from .environment import EnvironmentNotReadyError, inspect_environment, resolve_model_dir
+from .environment import EnvironmentNotReadyError, EnvironmentReport, inspect_environment, resolve_model_dir
 from .process_manager import JobSnapshot, ProcessManager
 from .records import iso_now, sha256_file, timestamp_id, write_json_atomic
 
@@ -280,21 +280,14 @@ class TrainingService:
         self._manifest: dict[str, Any] | None = None
         self._request: TrainingRequest | None = None
         self._staging_dir: Path | None = None
+        self.last_environment_report: EnvironmentReport | None = None
 
     def start(self, request: TrainingRequest) -> JobSnapshot:
         report, output, checkpoint_step = validate_training_request(request, self.config)
         environment_report = inspect_environment(self.config)
+        self.last_environment_report = environment_report
         if not environment_report.ready:
             raise EnvironmentNotReadyError(environment_report, self.config)
-        if (
-            environment_report.nvidia_used_mib is not None
-            and environment_report.nvidia_used_mib > 1024
-        ):
-            raise ValueError(
-                f"学習前のVRAM使用量が{environment_report.nvidia_used_mib} MiBです。"
-                "GPUを使用する他のアプリを終了してください。"
-            )
-
         model_dir = resolve_model_dir(self.config["paths"]["model_snapshot_root"])
         if model_dir is None:
             raise ValueError("SDXL Baseのローカルsnapshotが見つかりません。")
@@ -397,6 +390,8 @@ class TrainingService:
             "gpu": {
                 "name": environment_report.gpu_name,
                 "memory_total_mib": environment_report.nvidia_total_mib,
+                "memory_used_mib": environment_report.nvidia_used_mib,
+                "memory_free_mib": environment_report.nvidia_free_mib,
             },
             "log_path": str(log_path),
         }
@@ -445,6 +440,8 @@ class TrainingService:
         manifest["finished_at"] = snapshot.finished_at or iso_now()
         manifest["return_code"] = snapshot.return_code
         manifest["status"] = snapshot.state
+        if snapshot.state == "failed":
+            manifest["failure_message"] = snapshot.message
 
         current = Path(self._request.output_dir) / "pytorch_lora_weights.safetensors"
         if snapshot.state == "succeeded" and current.is_file():

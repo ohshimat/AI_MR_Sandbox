@@ -80,7 +80,10 @@ class ModelPathTests(unittest.TestCase):
                     self.assertIn(repr(value), report.to_markdown())
 
     def test_unset_override_uses_default_model_folder(self):
-        with patch.dict(os.environ):
+        with (
+            patch.dict(os.environ),
+            patch("core.config.read_user_model_path", return_value=None),
+        ):
             os.environ.pop("AI_MR_SDXL_MODEL_PATH", None)
             os.environ["AI_MR_COMMON_ROOT"] = str(Path(tempfile.gettempdir()) / "common")
             config = load_config()
