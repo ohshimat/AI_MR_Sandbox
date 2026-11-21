@@ -42,3 +42,7 @@ C++/**/x64/Release/*
 
 # Unity-generated IDE project files
 unity/**/*.csproj
+
+# Unity generated caches and backup directories
+**/[Ll]ibrary/
+**/Library.backup-*/
