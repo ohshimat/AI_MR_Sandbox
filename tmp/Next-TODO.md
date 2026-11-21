@@ -1,5 +1,52 @@
 # Next TODO — AI_MR_Sandbox / CH12 実装・実機検証
 
+## 2026-11-21：初回PC導入GUIと画像生成・学習GUIの実機確認
+
+### 1. 今回確認できたこと
+
+- [x] `Setups/ai_mr_setup_gui/` に初回PC導入GUI試作版を配置し、Gitコミット済み。
+- [x] 初回PC導入GUIは、PC側独立Python環境を標準方式として設計。
+- [x] セットアップGUI `setup_environment_gui.py` の構文確認に成功。
+- [x] セットアップGUIの起動に成功。
+- [x] セットアップGUIの事前・最終診断に成功。
+- [x] CH10.5 / CH10.6 / CH10.7 の参照確認に成功。
+- [x] `git`、`py`、`nvidia-smi`、`ollama` の検出に成功。
+- [x] PC側Python環境 `C:\AI_venvs\AI_MR_Sandbox\Scripts\python.exe` を検出。
+- [x] 資源ディレクトリ `C:\AI_MR_Sandbox`、成果物ディレクトリ `%USERPROFILE%\AI_MR_Workspace` を確認。
+- [x] Ollama 0.40.16 と `qwen3:8b` の利用、およびローカルAPI接続に成功。
+- [x] PyTorch / Diffusers / Transformers / PEFT / Accelerate / Hugging Face Hub を検出。
+- [x] CUDA利用可能を確認。
+- [x] GPU `NVIDIA RTX PRO 2000 Blackwell Generation Laptop GPU`（約8GB VRAM）を確認。
+- [x] SDXL Base 1.0 の候補ディレクトリを検出。
+- [x] `C:\AI_MR_Sandbox\runtime\image_gui_packages\gradio` および `C:\AI_MR_Sandbox\runtime\image_training_packages\datasets` の存在を確認。
+- [x] 画像生成・学習GUIの起動に成功。
+- [x] 画像生成に成功。
+- [x] 画像学習に成功。
+
+### 2. 今回の判断
+
+- [x] PC側独立Python環境を優先する構成は、この実機で成立している。
+- [x] セットアップGUI試作版は、少なくとも診断フェーズでは有効に機能した。
+- [x] 画像生成GUI・画像学習GUIも、同一構成上で動作確認できた。
+- [ ] ただし、セットアップGUI自身の Apply / Install 機能の完全検証は未実施。
+- [ ] 完全な新規PCでの初回導入E2E検証は未実施。
+
+### 3. 改善・残課題
+
+- [ ] セットアップGUIの診断表示を改善する。特に `gradio` はPC側Pythonへの通常importだけでなく、runtime分離構成の存在も加味して判定する。
+- [ ] セットアップGUIに `PASS / PASS with note / NEEDS ACTION` などの段階的表示を導入する。
+- [ ] `setup_image_learning_gui.cmd` および `start_image_learning_gui.cmd` との整合性を再確認する。
+- [ ] 画像生成・学習の成功時のログ、保存先、生成物、学習出力、必要に応じてSHA256を整理する。
+- [ ] README、環境構築手順書、CH10.5～10.7関連文書へ、PC側独立Python環境優先の方針を反映する。
+- [ ] 完全な新規PCで、Preview → Apply → Verify の順でE2E導入検証を実施する。
+
+### 4. 次回の優先順位
+
+1. `tmp/Next-TODO.md` と関連READMEへ今回の成功結果を反映する。
+2. セットアップGUIの診断ロジック表示を改善する。
+3. 画像生成・学習成功時の証跡整理を行う。
+4. 新規PCでの初回導入E2E検証を計画する。
+
 2026-11-21：研究環境・ポータビリティ整備の進捗
 
 1. 今回完了した作業
