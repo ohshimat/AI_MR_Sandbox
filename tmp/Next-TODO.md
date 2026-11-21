@@ -1,5 +1,81 @@
 # Next TODO — AI_MR_Sandbox / CH12 実装・実機検証
 
+2026-11-21：研究環境・ポータビリティ整備の進捗
+
+1. 今回完了した作業
+
+作業リポジトリ E:\AI_MR_Sandbox におけるGitの長いパス問題を調査。
+
+Unityの Library および Library.backup-* に、260文字を超えるパスが存在することを確認（検出最大296文字）。
+
+ローカルGit設定 core.longpaths=true を適用。
+
+ルート .gitignore にUnityの再生成キャッシュ・バックアップを除外する規則を追加。
+
+git status --short によりバックアップフォルダが追加候補から除外されたことを確認。
+
+ステージングとコミットが正常終了。
+
+最新コミットID、作業ブランチ、GitHubへのPush状況を確認。
+
+2. ポータビリティの継続課題
+
+別PCでのGitクローンと環境再構築を検証。
+
+WindowsのGit長パス設定を環境構築手順書に追記。
+
+Unityの Assets、Packages、ProjectSettings が適切にGit管理されていることを確認。
+
+PC固有の絶対パス、仮想環境、モデル保存先の依存関係を点検。
+
+tmp/Next-TODO.md のGit追跡状態を確認。
+
+3. CH12：AI–Unity–AIR連携
+
+成功ケースのE2E動作、Verification PASS、Human Evaluation correctを確認済み。
+
+Experience JSONLの証拠バックアップとSHA256を再確認。
+
+Verification FAILおよびHuman Evaluation incorrectの実機試験。
+
+通信障害時の動作検証。
+
+実験結果とCH12文書を更新。
+
+4. CH14・CH15：画像生成・LoRA学習
+
+SDXL画像生成、GUI回帰テスト66件PASS。
+
+GUI経由のLoRA学習・保存・再読込・画像生成E2Eを実機確認。
+
+CH15の学習ログ、manifest、生成条件、SHA256記録の整合性を確認。
+
+同一生成条件でLoRAあり／なしを比較。
+
+CH16の複数画像・複数ステップによる学習品質評価を設計。
+
+5. 次回作業の優先順位
+
+Gitの現在状態、最新コミットID、Push状況を確認する。
+
+研究環境の移植性・再現性に関する未検証事項を整理する。
+
+CH12の証拠バックアップを確認し、未完了試験を進める。
+
+CH15の実験証跡を補完し、CH16の評価計画へ進む。
+
+注意事項
+
+過去の検証記録・測定結果・チェックリストは履歴として保持する。
+
+tmp/experience.jsonl の現在の状態は未確認。過去の未コミット記録と区別する。
+
+core.longpaths はローカルGit設定であり、GitHubには共有されない。
+
+Gitのコミット成功は確認済みだが、Push成功および別PCでの再現性は未確認。
+
+原則として Preview → Apply → Verify → Commit → Push の手順を維持する。
+
 **最終更新:** 2026-11-01（JST）  
 **作業再開地点:** CH12の成功ケースE2E検証・文書化・GitHub保存まで完了。次は実験証拠のバックアップ確認と、Verification `FAIL`／Human Evaluation `incorrect` の追加実機試験。  
 **作業ブランチ:** `portability-cleanup`  
