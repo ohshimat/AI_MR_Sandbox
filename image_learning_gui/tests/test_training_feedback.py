@@ -47,7 +47,21 @@ class TrainingFeedbackTests(unittest.TestCase):
         labels = {item['props'].get('label'): item['id'] for item in components if item['props'].get('label')}
         self.assertLess(labels['学習プロンプト方式'], labels['共通／識別用学習プロンプト'])
         self.assertLess(labels['共通／識別用学習プロンプト'], labels['学習モード'])
-        start_event = next(event for event in demo.config['dependencies'] if event['inputs'] == [labels[name] for name in ['学習画像フォルダ', '学習モード', '学習結果フォルダ', '継続元checkpoint', '1画像あたりの総学習回数', '共通／識別用学習プロンプト', '学習プロンプト方式']])
+        start_event = next(
+            event for event in demo.config["dependencies"]
+            if event["inputs"] == [
+                labels[name] for name in [
+                    "学習画像フォルダ",
+                    "学習モード",
+                    "学習結果フォルダ",
+                    "継続元checkpoint",
+                    "1画像あたりの総学習回数",
+                    "共通／識別用学習プロンプト",
+                    "学習プロンプト方式",
+                    "サブフォルダ内の画像も学習対象に含める",
+                ]
+            ]
+        )
         feedback = start_event['outputs'][2]
         self.assertEqual(len(start_event['outputs']), 3)
         for event in demo.config['dependencies']:

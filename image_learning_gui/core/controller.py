@@ -90,12 +90,14 @@ class AppController:
         repetitions: int | float,
         mode: str = "新規学習",
         resume_checkpoint: str = "",
+        include_subfolders: bool = False,
     ) -> tuple[str, int, int, str]:
         try:
             report = inspect_dataset(
                 directory,
                 minimum_size=int(self.config["training"]["resolution"]),
                 include_hashes=False,
+                include_subfolders=include_subfolders,
             )
             count = report.valid
             additional_steps = self._calculate_steps(count, repetitions)
@@ -104,6 +106,7 @@ class AppController:
             )
             self._save_settings(
                 training_image_dir=directory,
+                training_include_subfolders=include_subfolders,
                 training_repetitions=int(repetitions),
                 additional_steps=additional_steps,
                 target_steps=target_steps,
@@ -192,11 +195,11 @@ class AppController:
         return report, choices, latest_path.name
 
     def load_caption_browser(
-        self, directory: str
+        self, directory: str, include_subfolders: bool = False
     ) -> tuple[list[tuple[str, str]], str, str | None, str, str]:
         try:
-            entries = list_caption_entries(directory)
-            gallery = self._caption_gallery(entries)
+            entries = list_caption_entries(directory, include_subfolders)
+            gallery = self._caption_gallery(entries, directory)
             selected = entries[0]
             preview = cache_caption_thumbnail(
                 selected.image_path, self.config["paths"]["preview_cache"]
@@ -214,10 +217,11 @@ class AppController:
             )
 
     def select_caption_image(
-        self, directory: str, index: int | tuple[int, ...]
+        self, directory: str, index: int | tuple[int, ...],
+        include_subfolders: bool = False,
     ) -> tuple[str, str | None, str, str]:
         try:
-            entries = list_caption_entries(directory)
+            entries = list_caption_entries(directory, include_subfolders)
             selected_index = index[0] if isinstance(index, tuple) else index
             selected = entries[int(selected_index)]
             preview = cache_caption_thumbnail(
@@ -235,20 +239,23 @@ class AppController:
             )
 
     def save_caption(
-        self, directory: str, image_path: str, caption: str
+        self, directory: str, image_path: str, caption: str,
+        include_subfolders: bool = False,
     ) -> tuple[list[tuple[str, str]], str, str]:
         try:
-            caption_path = save_image_caption(directory, image_path, caption)
-            entries = list_caption_entries(directory)
+            caption_path = save_image_caption(
+                directory, image_path, caption, include_subfolders=include_subfolders
+            )
+            entries = list_caption_entries(directory, include_subfolders)
             selected = next(
                 entry for entry in entries if entry.image_path == Path(image_path).resolve()
             )
             report = caption_progress_markdown(entries, selected)
             report += f"\n\n✅ 保存しました：`{caption_path}`"
-            return self._caption_gallery(entries), selected.caption, report
+            return self._caption_gallery(entries, directory), selected.caption, report
         except (OSError, StopIteration, ValueError) as error:
             try:
-                gallery = self._caption_gallery(list_caption_entries(directory))
+                gallery = self._caption_gallery(list_caption_entries(directory, include_subfolders), directory)
             except (OSError, ValueError):
                 gallery = []
             return gallery, caption, self._error_markdown(
@@ -264,12 +271,14 @@ class AppController:
         repetitions: int | float,
         prompt: str,
         caption_mode: str = CAPTION_MODE_FIXED,
+        include_subfolders: bool = False,
     ) -> tuple[str, str]:
         try:
             report = inspect_dataset(
                 image_dir,
                 minimum_size=int(self.config["training"]["resolution"]),
                 include_hashes=False,
+                include_subfolders=include_subfolders,
             )
             additional_steps = self._calculate_steps(report.valid, repetitions)
             target_steps = self._effective_target_steps(
@@ -283,6 +292,7 @@ class AppController:
                 instance_prompt=prompt,
                 caption_mode=caption_mode,
                 resume_checkpoint=resume_checkpoint or "",
+                include_subfolders=include_subfolders,
             )
             snapshot = self.training.start(request)
             self._save_settings(
@@ -290,6 +300,7 @@ class AppController:
                 training_output_dir=output_dir,
                 training_prompt=prompt,
                 training_caption_mode=caption_mode,
+                training_include_subfolders=include_subfolders,
                 training_resume_checkpoint=resume_checkpoint or "",
                 training_repetitions=int(repetitions),
                 additional_steps=int(additional_steps),
@@ -623,14 +634,17 @@ class AppController:
                 "学習または画像生成の実行中は保存・復元できません。完了後に実行してください。"
             )
 
-    def _caption_gallery(self, entries) -> list[tuple[str, str]]:
+    def _caption_gallery(self, entries, directory: str | Path | None = None) -> list[tuple[str, str]]:
         gallery: list[tuple[str, str]] = []
+        root = Path(directory).expanduser().resolve() if directory else None
         for entry in entries:
             thumbnail = cache_caption_thumbnail(
                 entry.image_path, self.config["paths"]["preview_cache"]
             )
             status = "✓ 保存済み" if entry.has_caption else "○ 未入力"
-            gallery.append((str(thumbnail), f"{entry.image_path.name}｜{status}"))
+            label = (entry.image_path.relative_to(root).as_posix()
+                     if root is not None else entry.image_path.name)
+            gallery.append((str(thumbnail), f"{label}｜{status}"))
         return gallery
 
     def _calculate_steps(self, image_count: int, repetitions: int | float) -> int:

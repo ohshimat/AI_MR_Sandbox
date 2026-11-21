@@ -90,11 +90,12 @@ def create_caption_select_handler(controller, select_data_type):
     event from being treated as a normal component input.
     """
 
-    def on_caption_image_select(directory, evt):
-        return controller.select_caption_image(directory, evt.index)
+    def on_caption_image_select(directory, include_subfolders, evt):
+        return controller.select_caption_image(directory, evt.index, include_subfolders)
 
     on_caption_image_select.__annotations__ = {
         "directory": str,
+        "include_subfolders": bool,
         "evt": select_data_type,
     }
     return on_caption_image_select
@@ -119,6 +120,7 @@ def build_app():
     config = merged_settings(load_config())
     controller = AppController(config)
     ui = config["ui_defaults"]
+    ui.setdefault("training_include_subfolders", False)
     training = config["training"]
     generation = config["generation"]
     fixed_generation = {
@@ -209,6 +211,11 @@ def build_app():
                 label="学習画像フォルダ",
                 value=ui["training_image_dir"],
                 lines=1,
+            )
+            training_include_subfolders = gr.Checkbox(
+                label="サブフォルダ内の画像も学習対象に含める",
+                value=bool(ui.get("training_include_subfolders", False)),
+                info="OFF：指定フォルダ直下のみ / ON：下位フォルダ内も再帰的に検索",
             )
             with gr.Row():
                 inspect_button = gr.Button("画像を検査", variant="secondary")
@@ -554,6 +561,7 @@ def build_app():
                 training_repetitions,
                 training_mode,
                 resume_checkpoint,
+                training_include_subfolders,
             ],
             outputs=[
                 dataset_report,
@@ -570,6 +578,7 @@ def build_app():
                 training_repetitions,
                 training_mode,
                 resume_checkpoint,
+                training_include_subfolders,
             ],
             outputs=[
                 dataset_report,
@@ -586,6 +595,7 @@ def build_app():
                 training_repetitions,
                 training_mode,
                 resume_checkpoint,
+                training_include_subfolders,
             ],
             outputs=[
                 dataset_report,
@@ -593,6 +603,14 @@ def build_app():
                 target_steps,
                 training_plan_report,
             ],
+            api_visibility="private",
+        )
+        training_include_subfolders.change(
+            controller.inspect_training_plan,
+            inputs=[training_image_dir, training_repetitions, training_mode,
+                    resume_checkpoint, training_include_subfolders],
+            outputs=[dataset_report, training_image_count, target_steps,
+                     training_plan_report],
             api_visibility="private",
         )
         training_repetitions.change(
@@ -646,7 +664,7 @@ def build_app():
         )
         load_caption_button.click(
             controller.load_caption_browser,
-            inputs=[training_image_dir],
+            inputs=[training_image_dir, training_include_subfolders],
             outputs=[
                 caption_gallery,
                 selected_caption_image,
@@ -659,7 +677,7 @@ def build_app():
 
         caption_gallery.select(
             create_caption_select_handler(controller, gr.SelectData),
-            inputs=[training_image_dir],
+            inputs=[training_image_dir, training_include_subfolders],
             outputs=[
                 selected_caption_image,
                 caption_preview,
@@ -670,7 +688,8 @@ def build_app():
         )
         save_caption_button.click(
             controller.save_caption,
-            inputs=[training_image_dir, selected_caption_image, caption_text],
+            inputs=[training_image_dir, selected_caption_image, caption_text,
+                    training_include_subfolders],
             outputs=[caption_gallery, caption_text, caption_report],
             api_visibility="private",
         )
@@ -684,6 +703,7 @@ def build_app():
                 training_repetitions,
                 training_prompt,
                 training_caption_mode,
+                training_include_subfolders,
             ],
             outputs=[status, training_log, training_start_result],
             api_visibility="private",

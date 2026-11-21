@@ -9,8 +9,8 @@ from app import create_caption_select_handler, generation_is_waiting
 
 
 class _Controller:
-    def select_caption_image(self, directory, index):
-        return directory, index
+    def select_caption_image(self, directory, index, include_subfolders=False):
+        return directory, index, include_subfolders
 
 
 class _Jobs:
@@ -34,7 +34,7 @@ class AppEventTests(unittest.TestCase):
         hints = utils.get_type_hints(handler)
 
         self.assertIs(hints["evt"], gr.SelectData)
-        self.assertEqual(handler("dataset", type("Event", (), {"index": 3})()), ("dataset", 3))
+        self.assertEqual(handler("dataset", True, type("Event", (), {"index": 3})()), ("dataset", 3, True))
 
     def test_generation_wait_effect_is_visible_while_generating(self) -> None:
         self.assertTrue(generation_is_waiting(_WaitingController("画像生成", "running")))

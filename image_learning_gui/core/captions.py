@@ -5,7 +5,7 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
-from .dataset import IMAGE_EXTENSIONS
+from .dataset import IMAGE_EXTENSIONS, list_training_images
 from .records import sha256_file
 
 
@@ -20,25 +20,21 @@ class CaptionEntry:
         return bool(self.caption.strip())
 
 
-def list_caption_entries(directory: str | Path) -> tuple[CaptionEntry, ...]:
+def list_caption_entries(
+    directory: str | Path, include_subfolders: bool = False
+) -> tuple[CaptionEntry, ...]:
     root = Path(directory).expanduser().resolve()
     if not root.is_dir():
         raise ValueError(f"学習画像フォルダが見つかりません: {root}")
 
-    images = sorted(
-        (
-            path.resolve()
-            for path in root.iterdir()
-            if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
-        ),
-        key=lambda path: path.name.casefold(),
-    )
+    images = [path.resolve() for path in list_training_images(root, include_subfolders)]
     if not images:
         raise ValueError(f"対応する学習画像がありません: {root}")
 
     stems: dict[str, Path] = {}
     for image in images:
-        key = image.stem.casefold()
+        # Collisions matter within the same directory, not across subfolders.
+        key = (image.parent.relative_to(root).as_posix().casefold(), image.stem.casefold())
         if key in stems:
             raise ValueError(
                 "同じ基本ファイル名の画像が複数あります。キャプション名が衝突します: "
@@ -63,14 +59,16 @@ def list_caption_entries(directory: str | Path) -> tuple[CaptionEntry, ...]:
 
 
 def save_image_caption(
-    directory: str | Path, image_path: str | Path, caption: str
+    directory: str | Path, image_path: str | Path, caption: str,
+    include_subfolders: bool = False,
 ) -> Path:
     root = Path(directory).expanduser().resolve()
     selected = Path(image_path).expanduser().resolve()
     if not root.is_dir():
         raise ValueError(f"学習画像フォルダが見つかりません: {root}")
-    if selected.parent != root:
-        raise ValueError("選択画像が学習画像フォルダの直下にありません。")
+    if (not selected.is_relative_to(root) or
+            (not include_subfolders and selected.parent != root)):
+        raise ValueError("選択画像が学習画像フォルダの直下または許可された下位フォルダにありません。")
     if not selected.is_file() or selected.suffix.lower() not in IMAGE_EXTENSIONS:
         raise ValueError(f"選択画像が見つかりません: {selected}")
 

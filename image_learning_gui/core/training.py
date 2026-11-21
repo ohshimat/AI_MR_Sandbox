@@ -31,6 +31,7 @@ class TrainingRequest:
     instance_prompt: str
     caption_mode: str = CAPTION_MODE_FIXED
     resume_checkpoint: str = ""
+    include_subfolders: bool = False
 
 
 def list_checkpoints(directory: str | Path) -> tuple[tuple[Path, int], ...]:
@@ -120,11 +121,18 @@ def stage_training_dataset(
         raise ValueError(f"学習用一時フォルダが既に存在します: {destination}")
     destination.mkdir(parents=True)
     try:
-        for record in report.records:
+        # Flatten recursive sources to a unique, deterministic list for both
+        # DreamBooth --instance_data_dir and datasets ImageFolder metadata.
+        staged_names = {}
+        for index, record in enumerate(report.records):
             if record.valid:
-                shutil.copy2(source_root / record.relative_path, destination / record.relative_path)
+                source = source_root / record.relative_path
+                name = (f"{index:06d}_{source.name}" if report.include_subfolders
+                        else source.name)
+                staged_names[record.relative_path] = name
+                shutil.copy2(source, destination / name)
         if caption_mode == CAPTION_MODE_PER_IMAGE:
-            entries = list_caption_entries(source_root)
+            entries = list_caption_entries(source_root, report.include_subfolders)
             common_prompt = instance_prompt.strip()
             if any(not entry.has_caption for entry in entries) and not common_prompt:
                 raise ValueError(
@@ -134,7 +142,7 @@ def stage_training_dataset(
             lines = [
                 json.dumps(
                     {
-                        "file_name": entry.image_path.name,
+                        "file_name": staged_names[entry.image_path.relative_to(source_root).as_posix()],
                         "prompt": entry.caption if entry.has_caption else common_prompt,
                     },
                     ensure_ascii=False,
@@ -165,6 +173,7 @@ def validate_training_request(
         request.image_dir,
         minimum_size=int(config["training"]["resolution"]),
         include_hashes=True,
+        include_subfolders=request.include_subfolders,
     )
     if not report.can_train:
         raise ValueError("破損画像があるため学習を開始できません。")
@@ -324,9 +333,9 @@ class TrainingService:
             caption_metadata_sha256 = sha256_file(caption_metadata_path)
             caption_records = [
                 {
-                    "image": entry.image_path.name,
+                    "image": entry.image_path.relative_to(Path(report.directory)).as_posix(),
                     "caption_file": (
-                        entry.caption_path.name if entry.has_caption else None
+                        entry.caption_path.relative_to(Path(report.directory)).as_posix() if entry.has_caption else None
                     ),
                     "caption": (
                         entry.caption
@@ -340,7 +349,7 @@ class TrainingService:
                         sha256_file(entry.caption_path) if entry.has_caption else None
                     ),
                 }
-                for entry in list_caption_entries(report.directory)
+                for entry in list_caption_entries(report.directory, request.include_subfolders)
             ]
         self._manifest = {
             "experiment_id": job_id,
@@ -351,13 +360,14 @@ class TrainingService:
             "training_image_dir": report.directory,
             "staged_image_dir": str(staging_dir),
             "image_count": report.valid,
+            "include_subfolders": request.include_subfolders,
             "training_images": report.to_dict()["records"],
             "instance_prompt": request.instance_prompt.strip(),
             "caption_mode": request.caption_mode,
             "caption_count": (
                 sum(
                     entry.has_caption
-                    for entry in list_caption_entries(report.directory)
+                    for entry in list_caption_entries(report.directory, request.include_subfolders)
                 )
                 if request.caption_mode == CAPTION_MODE_PER_IMAGE
                 else 0
@@ -365,7 +375,7 @@ class TrainingService:
             "common_prompt_fallback_count": (
                 sum(
                     not entry.has_caption
-                    for entry in list_caption_entries(report.directory)
+                    for entry in list_caption_entries(report.directory, request.include_subfolders)
                 )
                 if request.caption_mode == CAPTION_MODE_PER_IMAGE
                 else 0

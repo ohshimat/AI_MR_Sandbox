@@ -32,6 +32,7 @@ class DatasetReport:
     below_minimum: int
     minimum_size: int
     records: tuple[ImageRecord, ...]
+    include_subfolders: bool = False
 
     @property
     def can_train(self) -> bool:
@@ -45,6 +46,7 @@ class DatasetReport:
             "broken": self.broken,
             "below_minimum": self.below_minimum,
             "minimum_size": self.minimum_size,
+            "include_subfolders": self.include_subfolders,
             "can_train": self.can_train,
             "records": [asdict(record) for record in self.records],
         }
@@ -55,6 +57,7 @@ class DatasetReport:
             f"### 画像検査：{status}",
             "",
             f"- フォルダ：`{self.directory}`",
+            f"- サブフォルダ：{'含む' if self.include_subfolders else '含まない'}",
             f"- 対象画像：{self.total}枚",
             f"- Valid：{self.valid}",
             f"- Broken：{self.broken}",
@@ -76,18 +79,32 @@ class DatasetReport:
         return "\n".join(lines)
 
 
+def list_training_images(directory: str | Path, include_subfolders: bool = False) -> tuple[Path, ...]:
+    """List supported image files within the dataset, without following symlink escapes."""
+    root = Path(directory).expanduser().resolve()
+    if not root.is_dir():
+        raise ValueError(f"学習画像フォルダが見つかりません: {root}")
+    iterator = root.rglob("*") if include_subfolders else root.iterdir()
+    paths = []
+    for path in iterator:
+        if not path.is_file() or path.suffix.lower() not in IMAGE_EXTENSIONS:
+            continue
+        resolved = path.resolve()
+        if not resolved.is_relative_to(root):
+            continue
+        paths.append(path)
+    return tuple(sorted(paths, key=lambda p: p.relative_to(root).as_posix().casefold()))
+
+
 def inspect_dataset(
-    directory: str | Path, minimum_size: int = 512, include_hashes: bool = True
+    directory: str | Path, minimum_size: int = 512, include_hashes: bool = True,
+    include_subfolders: bool = False,
 ) -> DatasetReport:
     root = Path(directory).expanduser()
     if not root.is_dir():
         raise ValueError(f"学習画像フォルダが見つかりません: {root}")
 
-    files = sorted(
-        path
-        for path in root.iterdir()
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS
-    )
+    files = list_training_images(root, include_subfolders)
     if not files:
         raise ValueError(f"対応する学習画像がありません: {root}")
 
@@ -102,7 +119,7 @@ def inspect_dataset(
             below = min(width, height) < minimum_size
             records.append(
                 ImageRecord(
-                    relative_path=path.name,
+                    relative_path=path.relative_to(root).as_posix(),
                     width=width,
                     height=height,
                     size_bytes=path.stat().st_size,
@@ -114,7 +131,7 @@ def inspect_dataset(
         except Exception as error:  # Pillow raises several format-specific errors.
             records.append(
                 ImageRecord(
-                    relative_path=path.name,
+                    relative_path=path.relative_to(root).as_posix(),
                     width=width,
                     height=height,
                     size_bytes=path.stat().st_size,
@@ -136,4 +153,5 @@ def inspect_dataset(
         below_minimum=below_minimum,
         minimum_size=minimum_size,
         records=tuple(records),
+        include_subfolders=include_subfolders,
     )
